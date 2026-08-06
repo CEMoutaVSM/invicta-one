@@ -1,0 +1,15 @@
+a3f9c21 feat(invoices): add bulk export to CSV for accountants PROJ-2811
+b7e1d04 Merge branch 'main' into feature/bulk-export
+c0d2e88 fix typo in InvoiceService comment
+d41a7b3 fix(auth): stop session dropping after 15 min idle PROJ-2790
+e92f0aa WIP dont merge
+f18c3d5 refactor: extract PeriodGuard from PostingService
+0a7b9e2 bump nuget packages to latest minor
+1c3d5f7 Revert "Revert "feat: draft invoice autosave""
+2e8a1b4 improve: reduce invoice list load time from 4s to 900ms PROJ-2802
+3f9c0d1 chore: update github action runner
+4b2e7a8 handle edge case in currency rounding
+5d1f8c3 PROJ-2790 add regression test for session timeout
+6a4c2e9 fix XSS in customer note field CVE-2026-1188 PROJ-2830
+7e5b3f0 docs: update README
+8c6d4a1 feat: allow bookkeepers to view but not post entries PROJ-2815

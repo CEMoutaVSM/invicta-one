@@ -1,0 +1,10 @@
+{
+  "legacy/billing/InvoiceController.cs": [
+    "L3-ARCH-01"
+  ],
+  "src/reporting/readmodel/Q.cs": [
+    "L2-SEC-04"
+  ],
+  "src/onboarding/Saga.cs": [],
+  "_note": "src/onboarding is empty because DEV-006 expired 2026-06"
+}

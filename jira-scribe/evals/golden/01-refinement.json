@@ -1,0 +1,18 @@
+{
+  "input": "01-refinement.txt",
+  "status": "insufficient_input",
+  "actor": null,
+  "actor_source": "ambiguous",
+  "actor_candidates": [
+    "accountant",
+    "bookkeeper"
+  ],
+  "actor_ambiguous": true,
+  "missing_fields": [
+    "actor",
+    "action",
+    "outcome"
+  ],
+  "reversals_detected": 1,
+  "_note": "actor MUST stay unresolved: both 'accountant' and 'bookkeeper' appear and the agent must ask rather than pick. action/outcome MUST stay missing - the transcript never decided what happens on a forbidden post."
+}

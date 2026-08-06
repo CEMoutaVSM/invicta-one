@@ -1,0 +1,35 @@
+{
+  "input": "adversarial-all-noise.log",
+  "coverage": {
+    "items_in": 5,
+    "published": 0,
+    "internal": 1,
+    "suppressed": 4,
+    "duplicates_merged": 0,
+    "items_accounted": 5,
+    "reconciles": true
+  },
+  "decisions": {
+    "1": {
+      "class": "NOISE",
+      "rule": "R-01"
+    },
+    "2": {
+      "class": "NOISE",
+      "rule": "R-04"
+    },
+    "3": {
+      "class": "NOISE",
+      "rule": "R-04"
+    },
+    "4": {
+      "class": "NOISE",
+      "rule": "R-03"
+    },
+    "5": {
+      "class": "INTERNAL",
+      "rule": "R-07"
+    }
+  },
+  "empty_release": true
+}

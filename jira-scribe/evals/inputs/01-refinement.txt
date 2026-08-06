@@ -1,0 +1,12 @@
+[00:12:04] Ana: ok so pronto, the thing that came up from support again
+[00:12:09] Ana: uh, bookkeepers can post entries. they shouldn't be able to.
+[00:12:15] Miguel: wait, in the UI? or the API too
+[00:12:18] Ana: both I think. tipo, the button is hidden but if you hit the endpoint
+[00:12:24] Miguel: right so it's not really enforced anywhere
+[00:12:31] Ana: exactly. accountants yes, bookkeepers no. that's the rule
+[00:12:40] Miguel: basically we need the check server side
+[00:12:47] Ana: yeah. and they should still see everything, just read only
+[00:13:02] Miguel: what about entries they already posted before this
+[00:13:05] Ana: hmm. leave those. actually no wait, that's a separate ticket
+[00:13:20] Ana: so just going forward
+[00:13:31] Miguel: ok. I mean it's a small one

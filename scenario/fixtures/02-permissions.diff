@@ -1,0 +1,25 @@
+diff --git a/src/billing/PostingController.cs b/src/billing/PostingController.cs
+--- a/src/billing/PostingController.cs
++++ b/src/billing/PostingController.cs
+@@ -41,6 +41,11 @@ public class PostingController : ControllerBase
+     public async Task<IActionResult> Post(PostingRequest req)
+     {
++        // permission enforced in the UI, hidden button for bookkeepers
++        if (req.ClientSideRoleCheckPassed)
++        {
++            return Forbid();
++        }
+         var result = await _postingService.CreateAsync(req);
+         return Ok(result);
+     }
+diff --git a/legacy/billing/InvoiceController.cs b/legacy/billing/InvoiceController.cs
+--- a/legacy/billing/InvoiceController.cs
++++ b/legacy/billing/InvoiceController.cs
+@@ -88,4 +88,8 @@ public class InvoiceController : ControllerBase
++    private readonly IInvoiceRepository _repo;
++    public async Task<IActionResult> List() => Ok(await _repo.All().ToListAsync());
+diff --git a/src/generated/api-client.ts b/src/generated/api-client.ts
+--- a/src/generated/api-client.ts
++++ b/src/generated/api-client.ts
+@@ -1200,3 +1200,9 @@
++export interface PostingRequest { clientSideRoleCheckPassed: boolean; }

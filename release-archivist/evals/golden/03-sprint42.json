@@ -1,0 +1,79 @@
+{
+  "input": "03-sprint42.log",
+  "coverage": {
+    "items_in": 15,
+    "published": 6,
+    "internal": 4,
+    "suppressed": 5,
+    "duplicates_merged": 1,
+    "items_accounted": 15,
+    "reconciles": true
+  },
+  "decisions": {
+    "1": {
+      "class": "FEATURE",
+      "rule": "R-10"
+    },
+    "2": {
+      "class": "NOISE",
+      "rule": "R-01"
+    },
+    "3": {
+      "class": "NOISE",
+      "rule": "R-04"
+    },
+    "4": {
+      "class": "FIX",
+      "rule": "R-12"
+    },
+    "5": {
+      "class": "NOISE",
+      "rule": "R-03"
+    },
+    "6": {
+      "class": "INTERNAL",
+      "rule": "R-07"
+    },
+    "7": {
+      "class": "INTERNAL",
+      "rule": "R-06"
+    },
+    "8": {
+      "class": "NOISE",
+      "rule": "R-02"
+    },
+    "9": {
+      "class": "IMPROVEMENT",
+      "rule": "R-14"
+    },
+    "10": {
+      "class": "NOISE",
+      "rule": "R-05"
+    },
+    "11": {
+      "class": "IMPROVEMENT",
+      "rule": "R-00"
+    },
+    "12": {
+      "class": "INTERNAL",
+      "rule": "R-09b"
+    },
+    "13": {
+      "class": "FIX",
+      "rule": "R-13"
+    },
+    "14": {
+      "class": "INTERNAL",
+      "rule": "R-07"
+    },
+    "15": {
+      "class": "FEATURE",
+      "rule": "R-10"
+    }
+  },
+  "needs_human_judgment": [
+    11,
+    14
+  ],
+  "empty_release": false
+}
