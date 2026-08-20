@@ -1,0 +1,27 @@
+{
+  "input": "04-mixed-format.diff",
+  "status": "ok",
+  "coverage": {
+    "files_changed": 2,
+    "reviewable": 2,
+    "test_files": 0,
+    "skipped": 0
+  },
+  "decisions": {
+    "src/config/Secrets.cs": {
+      "kind": "review",
+      "skip_reason": null
+    },
+    "src/reporting/Query.cs": {
+      "kind": "review",
+      "skip_reason": null
+    }
+  },
+  "test_expectation": {
+    "new_branches": 1,
+    "removed_branches": 0,
+    "test_files_touched": 0,
+    "expectation_met": false
+  },
+  "_note": "This diff mixes a `diff --git` header with a bare `--- a/ +++ b/` pair. Keying only on `diff --git` parsed it as ONE file, so the second file - carrying a hardcoded production key and a string-concatenated SQL query - was invisible to the reviewer and the coverage count said so with confidence. Both files must be reviewable."
+}

@@ -1,0 +1,13 @@
+{
+  "input": "02-braindump.txt",
+  "status": "ok",
+  "actor": "accountant",
+  "actor_source": "L3-glossary",
+  "actor_candidates": [
+    "accountant"
+  ],
+  "actor_ambiguous": false,
+  "missing_fields": [],
+  "reversals_detected": 0,
+  "_note": "The happy path, and the second half of requirement C1: the Scribe accepts a messy brain dump as well as a transcript. All three fields are recoverable, so the agent must produce a complete story and ask nothing. actor_source is L3-glossary, not explicit: nobody said 'as an accountant', they said 'the accountants keep asking'. Only the project context knows that is an actor, which is the calibration layer doing real work rather than being claimed. An earlier version of this fixture was phrased 'as an accountant I want X so that Y' - that is a user story, not a brain dump, and an input containing its own answer demonstrates nothing."
+}

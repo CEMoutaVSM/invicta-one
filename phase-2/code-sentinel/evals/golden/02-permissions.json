@@ -1,0 +1,31 @@
+{
+  "input": "02-permissions.diff",
+  "status": "ok",
+  "coverage": {
+    "files_changed": 3,
+    "reviewable": 2,
+    "test_files": 0,
+    "skipped": 1
+  },
+  "decisions": {
+    "src/billing/PostingController.cs": {
+      "kind": "review",
+      "skip_reason": null
+    },
+    "legacy/billing/InvoiceController.cs": {
+      "kind": "review",
+      "skip_reason": null
+    },
+    "src/generated/api-client.ts": {
+      "kind": "skip",
+      "skip_reason": "generated/vendored"
+    }
+  },
+  "test_expectation": {
+    "new_branches": 1,
+    "removed_branches": 0,
+    "test_files_touched": 0,
+    "expectation_met": false
+  },
+  "_note": "new_branches is 1, not 2: the added comment '// permission enforced in the UI, hidden button for bookkeepers' was previously counted as a branch because it contains the word 'for'. Comments are now stripped before branch detection. expectation_met stays false - one new branch, no test file touched - so the Sentinel must raise L2-TEST-01, and validate_findings --diff enforces that."
+}

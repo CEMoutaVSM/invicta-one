@@ -1,0 +1,58 @@
+{
+  "agent": "code-sentinel",
+  "version": "1.0",
+  "status": "ok",
+  "files": [
+    {
+      "path": "src/billing/PostingController.cs",
+      "kind": "review",
+      "skip_reason": null,
+      "added": 5,
+      "removed": 0,
+      "new_branches": 1,
+      "removed_branches": 0,
+      "secrets": [],
+      "hunks": [
+        {
+          "new_start": 41,
+          "context": "public class PostingController : ControllerBase"
+        }
+      ]
+    },
+    {
+      "path": "legacy/billing/InvoiceController.cs",
+      "kind": "review",
+      "skip_reason": null,
+      "added": 2,
+      "removed": 0,
+      "new_branches": 0,
+      "removed_branches": 0,
+      "secrets": [],
+      "hunks": [
+        {
+          "new_start": 88,
+          "context": "public class InvoiceController : ControllerBase"
+        }
+      ]
+    },
+    {
+      "path": "src/generated/api-client.ts",
+      "kind": "skip",
+      "skip_reason": "generated/vendored"
+    }
+  ],
+  "coverage": {
+    "files_changed": 3,
+    "reviewable": 2,
+    "test_files": 0,
+    "skipped": 1
+  },
+  "must_flag": [],
+  "test_expectation": {
+    "new_branches": 1,
+    "removed_branches": 0,
+    "test_files_touched": 0,
+    "expectation_met": false
+  },
+  "large_diff": false
+}

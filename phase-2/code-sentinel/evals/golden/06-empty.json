@@ -1,0 +1,18 @@
+{
+  "input": "06-empty.diff",
+  "status": "insufficient_input",
+  "coverage": {
+    "files_changed": 0,
+    "reviewable": 0,
+    "test_files": 0,
+    "skipped": 0
+  },
+  "decisions": {},
+  "test_expectation": {
+    "new_branches": 0,
+    "removed_branches": 0,
+    "test_files_touched": 0,
+    "expectation_met": true
+  },
+  "_note": "An empty diff must refuse, not report a clean review of nothing. `status` is part of the golden because the refusal branch could otherwise be deleted without a single eval failing."
+}

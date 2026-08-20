@@ -1,0 +1,99 @@
+{
+  "agent": "release-archivist",
+  "version": "1.0",
+  "status": "ok",
+  "empty_release": false,
+  "decide": {
+    "wording": [
+      {
+        "line": 1,
+        "class": "FEATURE",
+        "text": "feat(invoices): add bulk export to CSV for accountants PROJ-2811"
+      },
+      {
+        "line": 4,
+        "class": "FIX",
+        "text": "fix(auth): stop session dropping after 15 min idle PROJ-2790"
+      },
+      {
+        "line": 9,
+        "class": "IMPROVEMENT",
+        "text": "improve: reduce invoice list load time from 4s to 900ms PROJ-2802"
+      },
+      {
+        "line": 13,
+        "class": "FIX",
+        "text": "fix XSS in customer note field CVE-2026-1188 PROJ-2830"
+      },
+      {
+        "line": 15,
+        "class": "FEATURE",
+        "text": "feat: allow bookkeepers to view but not post entries PROJ-2815"
+      }
+    ],
+    "classify": [
+      {
+        "line": 11,
+        "text": "handle edge case in currency rounding",
+        "provisional": "IMPROVEMENT",
+        "why": "no rule matched"
+      },
+      {
+        "line": 14,
+        "text": "docs: update README",
+        "provisional": "INTERNAL",
+        "why": "internal engineering work"
+      }
+    ],
+    "check": [
+      {
+        "line": 14,
+        "text": "docs: update README",
+        "provisional": "INTERNAL",
+        "why": "internal engineering work"
+      }
+    ]
+  },
+  "internal": [
+    {
+      "line": 6,
+      "text": "refactor: extract PeriodGuard from PostingService"
+    },
+    {
+      "line": 7,
+      "text": "bump nuget packages to latest minor"
+    },
+    {
+      "line": 12,
+      "text": "PROJ-2790 add regression test for session timeout"
+    },
+    {
+      "line": 14,
+      "text": "docs: update README"
+    }
+  ],
+  "security_items": [
+    {
+      "line": 13,
+      "text": "fix XSS in customer note field CVE-2026-1188 PROJ-2830",
+      "class": "FIX"
+    }
+  ],
+  "coverage": {
+    "lines_in": 15,
+    "lines_blank": 0,
+    "lines_furniture": 0,
+    "items_in": 15,
+    "published": 6,
+    "internal": 4,
+    "suppressed": 5,
+    "duplicates_merged": 1,
+    "duplicates_published": 0,
+    "expected_entries": 6,
+    "unclassified": 2,
+    "items_accounted": 15,
+    "classes_reconcile": true,
+    "lines_reconcile": true,
+    "reconciles": true
+  }
+}

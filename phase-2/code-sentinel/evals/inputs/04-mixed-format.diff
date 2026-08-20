@@ -1,0 +1,13 @@
+diff --git a/src/config/Secrets.cs b/src/config/Secrets.cs
+--- a/src/config/Secrets.cs
++++ b/src/config/Secrets.cs
+@@ -1,3 +1,4 @@
+ public static class Secrets
+ {
++    private const string ApiKey = "prod-sk-9f2c1ab44de0";
+ }
+--- a/src/reporting/Query.cs
++++ b/src/reporting/Query.cs
+@@ -10,2 +10,4 @@ public class Query
++        if (id != null)
++            return Run("SELECT * FROM invoices WHERE id = " + id);

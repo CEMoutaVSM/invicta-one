@@ -1,0 +1,25 @@
+{
+  "input": "05-empty.log",
+  "status": "insufficient_input",
+  "coverage": {
+    "lines_in": 3,
+    "lines_blank": 2,
+    "lines_furniture": 1,
+    "items_in": 0,
+    "published": 0,
+    "internal": 0,
+    "suppressed": 0,
+    "duplicates_merged": 0,
+    "duplicates_published": 0,
+    "expected_entries": 0,
+    "unclassified": 0,
+    "items_accounted": 0,
+    "classes_reconcile": true,
+    "lines_reconcile": true,
+    "reconciles": true
+  },
+  "decisions": {},
+  "needs_human_judgment": [],
+  "empty_release": false,
+  "_note": "A log with no classifiable items must refuse rather than emit an empty release. `status` is part of the golden because the refusal branch could otherwise be deleted without a single eval failing."
+}

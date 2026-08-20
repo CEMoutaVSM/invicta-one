@@ -4,3 +4,6 @@ __pycache__/
 # never commit the anonymisation map — it de-anonymises the corpus
 anonymisation-map*
 *.local.md
+
+# Claude Code local settings
+.claude/

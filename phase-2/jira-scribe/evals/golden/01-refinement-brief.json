@@ -1,0 +1,29 @@
+{
+  "agent": "jira-scribe",
+  "version": "1.0",
+  "status": "insufficient_input",
+  "candidates": {
+    "actor": null,
+    "action": null,
+    "outcome": null
+  },
+  "actor_source": "ambiguous",
+  "actor_candidates": [
+    "accountant",
+    "bookkeeper"
+  ],
+  "actor_ambiguous": true,
+  "missing_fields": [
+    "actor",
+    "action",
+    "outcome"
+  ],
+  "multi_feature": true,
+  "reversals": [
+    "actually no wait, that's a separate ticket"
+  ],
+  "stated_values": [],
+  "numeric_literals": [
+    "1"
+  ]
+}

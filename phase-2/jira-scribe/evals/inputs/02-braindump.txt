@@ -1,0 +1,1 @@
+ok so basically the accountants keep asking for this one - they want to get the invoice list out into excel, whatever they've filtered on screen. right now they retype the whole thing by hand which is mad tbh. so they need to be able to export it, so they can reconcile against their own sheet without re-keying. same columns as the screen is fine, nothing fancy.

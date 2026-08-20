@@ -1,0 +1,46 @@
+{
+  "input": "adversarial-all-noise.log",
+  "status": "ok",
+  "coverage": {
+    "lines_in": 5,
+    "lines_blank": 0,
+    "lines_furniture": 0,
+    "items_in": 5,
+    "published": 0,
+    "internal": 1,
+    "suppressed": 4,
+    "duplicates_merged": 0,
+    "duplicates_published": 0,
+    "expected_entries": 0,
+    "unclassified": 0,
+    "items_accounted": 5,
+    "classes_reconcile": true,
+    "lines_reconcile": true,
+    "reconciles": true
+  },
+  "decisions": {
+    "1": {
+      "class": "NOISE",
+      "rule": "R-01"
+    },
+    "2": {
+      "class": "NOISE",
+      "rule": "R-04"
+    },
+    "3": {
+      "class": "NOISE",
+      "rule": "R-05"
+    },
+    "4": {
+      "class": "NOISE",
+      "rule": "R-03"
+    },
+    "5": {
+      "class": "INTERNAL",
+      "rule": "R-07"
+    }
+  },
+  "needs_human_judgment": [],
+  "empty_release": true,
+  "_note": "Line 3 ('chore: bump eslint') is attributed to R-05, not R-04. Conventional-commit prefixes now run ahead of the token heuristics, so the author's own `chore:` declaration wins over an incidental match on the word 'eslint'. The classification is NOISE either way; only the cited rule changed. That ordering is what stops `feat: add dashboard widget` being buried as INTERNAL by the word 'dashboard'."
+}
