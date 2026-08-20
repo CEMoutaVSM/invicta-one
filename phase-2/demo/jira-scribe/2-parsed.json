@@ -1,0 +1,32 @@
+{
+  "agent": "jira-scribe",
+  "version": "1.0",
+  "status": "ok",
+  "stats": {
+    "words_in": 67,
+    "words_clean": 66,
+    "segments": 4
+  },
+  "speakers": [],
+  "candidates": {
+    "actor": "accountant",
+    "action": "get the invoice list out into excel, whatever they've filtered on screen",
+    "outcome": "reconcile against their own sheet without re-keying"
+  },
+  "actor_candidates": [
+    "accountant"
+  ],
+  "actor_ambiguous": false,
+  "missing_fields": [],
+  "multi_feature": false,
+  "reversals": [],
+  "actor_source": "L3-glossary",
+  "stated_values": [],
+  "numeric_literals": [],
+  "segments": [
+    "ok so the accountants keep asking for this one - they want to get the invoice list out into excel, whatever they've filtered on screen.",
+    "right now they retype the whole thing by hand which is mad tbh.",
+    "so they need to be able to export it, so they can reconcile against their own sheet without re-keying.",
+    "same columns as the screen is fine, nothing fancy."
+  ]
+}

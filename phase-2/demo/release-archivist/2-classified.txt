@@ -1,0 +1,19 @@
+in=15 published=6 internal=4 suppressed=5 accounted=15 reconciles=YES
+lines=15 (items=15 furniture=0 blank=0) lines_reconcile=YES
+     1 FEATURE     R-10  feat(invoices): add bulk export to CSV for accountants PRO
+     2 NOISE       R-01  Merge branch 'main' into feature/bulk-export
+     3 NOISE       R-04  fix typo in InvoiceService comment
+     4 FIX         R-12  fix(auth): stop session dropping after 15 min idle PROJ-27
+     5 NOISE       R-03  WIP dont merge
+     6 INTERNAL    R-07  refactor: extract PeriodGuard from PostingService
+     7 INTERNAL    R-06  bump nuget packages to latest minor
+     8 NOISE       R-02  Revert "Revert "feat: draft invoice autosave""
+     9 IMPROVEMENT R-14  improve: reduce invoice list load time from 4s to 900ms PR
+    10 NOISE       R-05  chore: update github action runner
+ ?  11 IMPROVEMENT R-00  handle edge case in currency rounding
+    12 INTERNAL    R-09b  PROJ-2790 add regression test for session timeout (dup of line 4)
+    13 FIX         R-13  fix XSS in customer note field CVE-2026-1188 PROJ-2830
+ ?  14 INTERNAL    R-07  docs: update README
+    15 FEATURE     R-10  feat: allow bookkeepers to view but not post entries PROJ-
+
+Lines needing judgment: [11, 14]

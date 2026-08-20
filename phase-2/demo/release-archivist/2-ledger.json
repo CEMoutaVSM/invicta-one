@@ -1,0 +1,232 @@
+{
+  "agent": "release-archivist",
+  "version": "1.0",
+  "status": "ok",
+  "coverage": {
+    "lines_in": 15,
+    "lines_blank": 0,
+    "lines_furniture": 0,
+    "items_in": 15,
+    "published": 6,
+    "internal": 4,
+    "suppressed": 5,
+    "duplicates_merged": 1,
+    "duplicates_published": 0,
+    "expected_entries": 6,
+    "items_accounted": 15,
+    "classes_reconcile": true,
+    "lines_reconcile": true,
+    "reconciles": true
+  },
+  "by_class": {
+    "FEATURE": 2,
+    "NOISE": 5,
+    "FIX": 2,
+    "INTERNAL": 4,
+    "IMPROVEMENT": 2
+  },
+  "needs_human_judgment": [
+    11,
+    14
+  ],
+  "security_items": [
+    13
+  ],
+  "empty_release": false,
+  "furniture": [],
+  "items": [
+    {
+      "line": 1,
+      "raw": "a3f9c21 feat(invoices): add bulk export to CSV for accountants PROJ-2811",
+      "normalised": "feat(invoices): add bulk export to CSV for accountants PROJ-2811",
+      "class": "FEATURE",
+      "rule": "R-10",
+      "reason": "conventional-commit feature",
+      "tickets": [
+        "PROJ-2811"
+      ],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 2,
+      "raw": "b7e1d04 Merge branch 'main' into feature/bulk-export",
+      "normalised": "Merge branch 'main' into feature/bulk-export",
+      "class": "NOISE",
+      "rule": "R-01",
+      "reason": "merge commit",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 3,
+      "raw": "c0d2e88 fix typo in InvoiceService comment",
+      "normalised": "fix typo in InvoiceService comment",
+      "class": "NOISE",
+      "rule": "R-04",
+      "reason": "cosmetic / non-functional",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 4,
+      "raw": "d41a7b3 fix(auth): stop session dropping after 15 min idle PROJ-2790",
+      "normalised": "fix(auth): stop session dropping after 15 min idle PROJ-2790",
+      "class": "FIX",
+      "rule": "R-12",
+      "reason": "conventional-commit fix",
+      "tickets": [
+        "PROJ-2790"
+      ],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 5,
+      "raw": "e92f0aa WIP dont merge",
+      "normalised": "WIP dont merge",
+      "class": "NOISE",
+      "rule": "R-03",
+      "reason": "work-in-progress marker",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 6,
+      "raw": "f18c3d5 refactor: extract PeriodGuard from PostingService",
+      "normalised": "refactor: extract PeriodGuard from PostingService",
+      "class": "INTERNAL",
+      "rule": "R-07",
+      "reason": "internal engineering work",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 7,
+      "raw": "0a7b9e2 bump nuget packages to latest minor",
+      "normalised": "bump nuget packages to latest minor",
+      "class": "INTERNAL",
+      "rule": "R-06",
+      "reason": "dependency maintenance",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 8,
+      "raw": "1c3d5f7 Revert \"Revert \"feat: draft invoice autosave\"\"",
+      "normalised": "Revert \"Revert \"feat: draft invoice autosave\"\"",
+      "class": "NOISE",
+      "rule": "R-02",
+      "reason": "revert of a revert - net zero",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 9,
+      "raw": "2e8a1b4 improve: reduce invoice list load time from 4s to 900ms PROJ-2802",
+      "normalised": "improve: reduce invoice list load time from 4s to 900ms PROJ-2802",
+      "class": "IMPROVEMENT",
+      "rule": "R-14",
+      "reason": "enhancement to existing behaviour",
+      "tickets": [
+        "PROJ-2802"
+      ],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 10,
+      "raw": "3f9c0d1 chore: update github action runner",
+      "normalised": "chore: update github action runner",
+      "class": "NOISE",
+      "rule": "R-05",
+      "reason": "conventional-commit non-shipping type",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 11,
+      "raw": "4b2e7a8 handle edge case in currency rounding",
+      "normalised": "handle edge case in currency rounding",
+      "class": "IMPROVEMENT",
+      "rule": "R-00",
+      "reason": "unmatched - defaulted, needs review",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": true,
+      "security": false
+    },
+    {
+      "line": 12,
+      "raw": "5d1f8c3 PROJ-2790 add regression test for session timeout",
+      "normalised": "PROJ-2790 add regression test for session timeout",
+      "class": "INTERNAL",
+      "rule": "R-09b",
+      "reason": "test-only change, not customer-facing",
+      "tickets": [
+        "PROJ-2790"
+      ],
+      "duplicate_of_line": 4,
+      "low_confidence": false,
+      "security": false
+    },
+    {
+      "line": 13,
+      "raw": "6a4c2e9 fix XSS in customer note field CVE-2026-1188 PROJ-2830",
+      "normalised": "fix XSS in customer note field CVE-2026-1188 PROJ-2830",
+      "class": "FIX",
+      "rule": "R-13",
+      "reason": "defect resolution",
+      "tickets": [
+        "CVE-2026",
+        "PROJ-2830"
+      ],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": true
+    },
+    {
+      "line": 14,
+      "raw": "7e5b3f0 docs: update README",
+      "normalised": "docs: update README",
+      "class": "INTERNAL",
+      "rule": "R-07",
+      "reason": "internal engineering work",
+      "tickets": [],
+      "duplicate_of_line": null,
+      "low_confidence": true,
+      "security": false
+    },
+    {
+      "line": 15,
+      "raw": "8c6d4a1 feat: allow bookkeepers to view but not post entries PROJ-2815",
+      "normalised": "feat: allow bookkeepers to view but not post entries PROJ-2815",
+      "class": "FEATURE",
+      "rule": "R-10",
+      "reason": "conventional-commit feature",
+      "tickets": [
+        "PROJ-2815"
+      ],
+      "duplicate_of_line": null,
+      "low_confidence": false,
+      "security": false
+    }
+  ]
+}
