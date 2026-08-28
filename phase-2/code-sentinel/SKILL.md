@@ -261,7 +261,7 @@ suite does not run.
 
 **19/19 passed.**
 
-**Both directions are tested.** Case 12 proves the agent cannot say what it
+**Both directions are tested.** Case 14 proves the agent cannot say what it
 cannot cite. Cases 9 and 10 prove the opposite and harder thing: the same blind
 `APPROVE` passes without `--diff` and fails with it, because a review that *misses* a
 defect the parser proved is there is a failed review, not a lenient one.

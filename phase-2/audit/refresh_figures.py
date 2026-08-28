@@ -107,6 +107,27 @@ def figures() -> dict:
     }
 
 
+def sentinel_cases() -> dict:
+    """Row numbers in the Sentinel's Eval Log, by the fixture each case names.
+
+    Its prose points at cases by number - "Case N proves the agent cannot say
+    what it cannot cite" - and inserting two new cases silently shifted every
+    number after them. Exactly the drift this file exists to stop, one level
+    further in.
+    """
+    skill = (ROOT / "code-sentinel/SKILL.md").read_text(encoding="utf-8")
+    rows = [l for l in skill.splitlines() if re.match(r"^\|\s*\d+\s*\|", l)]
+    out = {}
+    for l in rows:
+        n = int(l.split("|")[1].strip())
+        out[l.split("|")[2].strip()] = n
+    def find(sub):
+        return next((v for k, v in out.items() if sub in k), None)
+    return {"cite": find("adversarial-uncited-review"),
+            "blind_no": find("adversarial-missed-defect.md (no diff"),
+            "blind_yes": find("adversarial-missed-defect.md (+diff")}
+
+
 def rules(f: dict) -> list:
     """(file, pattern, replacement, regex flags) — one per embedded figure."""
     c, p = f["cov"], f["cov"]["published"]
@@ -155,6 +176,14 @@ def rules(f: dict) -> list:
          f"**{WORDS.get(f['auditors'], f['auditors'])} independent auditors**", 0),
         ("verify.sh", r"defect \w+ independent auditors",
          f"defect {WORDS.get(f['auditors'], f['auditors'])} independent auditors", 0),
+        # The Sentinel's Eval Log prose points at cases by number.
+        # The Sentinel's Eval Log prose points at cases by number, and
+        # inserting two cases silently shifted every number after them.
+        ("code-sentinel/SKILL.md", r"Case \d+ proves the agent",
+         (lambda m: "Case %d proves the agent" % sentinel_cases()["cite"]), 0),
+        ("code-sentinel/SKILL.md", r"Cases \d+ and \d+ prove",
+         (lambda m, c=sentinel_cases():
+          "Cases %d and %d prove" % (c["blind_no"], c["blind_yes"])), 0),
         (HTML, r"\d+ cases that fail when the logic changes",
          f"{f['cases']} cases that fail when the logic changes", 0),
     ]
