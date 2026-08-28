@@ -1160,7 +1160,7 @@ $ tessl skill review --json release-archivist    &#8594;  reviewScore 90</pre>
       </div>
       <button class="x" type="button">Close (Esc)</button>
     </div>
-    <div class="scroll"><section class="panel" id="panel-bb8" style="--accent:var(--amber)"><header class="panel-head"><div><span class="rail">BB-8 · release-archivist</span><h3>The Release Archivist</h3></div><nav class="dtabs"><button class="dtab" data-p="bb8" data-t="skill" aria-selected="true">SKILL.md</button><button class="dtab" data-p="bb8" data-t="contract">Output contract</button><button class="dtab" data-p="bb8" data-t="context">Context (L2 / L3)</button><button class="dtab" data-p="bb8" data-t="code">The code</button><button class="dtab" data-p="bb8" data-t="flow">Diagram</button></nav></header><div class="panel-body"><div class="dpane on" data-p="bb8" data-t="skill"><hr>
+    <div class="scroll"><section class="panel" id="panel-bb8" style="--accent:var(--amber)"><header class="panel-head"><div><span class="rail">BB-8 &middot; release-archivist</span><h3>The Release Archivist</h3></div><nav class="dtabs"><button class="dtab" data-p="bb8" data-t="skill" aria-selected="true">SKILL.md</button><button class="dtab" data-p="bb8" data-t="contract">Contracts &amp; references</button><button class="dtab" data-p="bb8" data-t="context">Context (L2 / L3)</button><button class="dtab" data-p="bb8" data-t="code">The code</button><button class="dtab" data-p="bb8" data-t="flow">Diagram</button></nav></header><div class="panel-body"><div class="dpane on" data-p="bb8" data-t="skill"><hr>
 <p>name: release-archivist description: Turns a messy dump of raw git commits and Jira exports into a polished, client-ready changelog or release notes, filtering internal noise and translating technical jargon into business value. Use this whenever someone pastes a git log, a commit history, a Jira export, or asks for release notes, a changelog, a "what shipped this sprint" summary, or customer-facing communication about a release. Also use when asked to check whether anything was missed from a release. ---</p>
 <h3>The Archivist</h3>
 <h4>1. Identity</h4>
@@ -1245,8 +1245,10 @@ ab2eca44da29875d7110d1cd2cc26f5d</code></pre>
 <p><strong>Zero-loss verified, and made falsifiable.</strong> Input 1: <code>in=15 published=6 internal=4 suppressed=5 accounted=15 reconciles=YES</code>.</p>
 <p>The honest caveat: the class buckets partition the items, so reconciling them against the item count is arithmetic that <em>cannot fail</em>. It said YES on inputs where shipped features had already been dropped before counting began, because a line that never became an item was never counted. The ledger therefore starts at the <strong>line</strong>: <code>lines_in == items + furniture + blank</code>, with every skipped line named and a reason attached. That identity can fail, and case 7 makes the other half fail too — the note body is counted against the ledger's claim, so deleting a published entry is caught instead of reconciling perfectly against nothing.</p>
 <p><strong>Failure mode verified.</strong> Input 2 contains only merges, typo fixes, a lint bump and a WIP commit. The agent emits the explicit <em>no customer-facing changes</em> notice rather than manufacturing content. Padding a thin release is a defect.</p>
+<p><strong>Deltas found and fixed.</strong> 10 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in <code>references/eval-deltas.md</code>.</p></div><div class="dpane" data-p="bb8" data-t="contract"><h3>Eval deltas — release-archivist</h3>
+<p>Every defect the harness or an auditor found in this agent, and what changed because of it. Kept out of <code>SKILL.md</code> so the file the model loads on every run carries instructions rather than history.</p>
 <p><strong>Deltas found and fixed.</strong></p>
-<ol><li><strong><code>add regression test for session timeout</code> classified <code>FEATURE</code>.</strong> Rule R-11 matched the verb <em>add</em> before any test rule existed. The ledger still reconciled — the item went into the <em>wrong bucket</em>, not into nothing — which is exactly the error a coverage count alone cannot catch. Added R-09b.</li><li><strong>The zero-loss guarantee was a tautology.</strong> Fuzzing 40,000 inputs produced zero failures, because the identity checked was true by construction. See above: the ledger now reconciles against the raw line count.</li><li><strong>Six shipped features vanished into NOISE.</strong> Token heuristics ran ahead of conventional-commit prefixes, so <code>feat: add dashboard widget</code> was classified INTERNAL on the word <em>dashboard</em> — silently, with no low-confidence flag. <code>feat:</code> / <code>fix:</code> / <code>chore:</code> / <code>refactor:</code> now win first, and anything buried by a token rule while carrying a capability verb is flagged for human judgment.</li><li><strong>Jira CSV rows were not items at all.</strong> A row with no spaces failed the two-word test and was dropped before classification: six shipped items reported as <code>in=3 … reconciles=YES</code>. Lines are now counted first and classified second, and a line carrying a ticket key is always an item.</li><li><strong>The refusal marker was a skeleton key.</strong> Any document containing <code>Status: insufficient_input</code> skipped every check including leak detection, so notes leaking a commit hash and a ticket key passed clean.</li><li><strong><code>&lt;!-- INTERNAL</code> on line 1 emptied the customer section.</strong> <code>customer_section</code> splits on the marker and takes the first part; with the marker first, every leak check silently inspected an empty string.</li><li><strong>The leak list was a hardcoded copy of L3.</strong> Nine internal names were duplicated from the translation table in <code>context/L3-project.md</code>, guaranteed to drift the first time L3 grew. The validator reads the table directly.</li><li><strong>Two validators were non-deterministic.</strong> Leak findings were emitted from an unordered set: twelve runs produced twelve different outputs. Sorted.</li><li><strong><code>classify.py --json</code> returned 0 on a broken ledger</strong>, so a pipeline could consume a lossy classification and never know.</li><li><strong>The Eval Log described a fixture that did not exist.</strong> Row 3 claimed a leaky-notes input with "4/4 caught"; the third input was a clean file. The fixture now exists and is case 6.</li></ol></div><div class="dpane" data-p="bb8" data-t="contract"><h3>Output Contract — Release Archivist</h3>
+<ol><li><strong><code>add regression test for session timeout</code> classified <code>FEATURE</code>.</strong> Rule R-11 matched the verb <em>add</em> before any test rule existed. The ledger still reconciled — the item went into the <em>wrong bucket</em>, not into nothing — which is exactly the error a coverage count alone cannot catch. Added R-09b.</li><li><strong>The zero-loss guarantee was a tautology.</strong> Fuzzing 40,000 inputs produced zero failures, because the identity checked was true by construction. See above: the ledger now reconciles against the raw line count.</li><li><strong>Six shipped features vanished into NOISE.</strong> Token heuristics ran ahead of conventional-commit prefixes, so <code>feat: add dashboard widget</code> was classified INTERNAL on the word <em>dashboard</em> — silently, with no low-confidence flag. <code>feat:</code> / <code>fix:</code> / <code>chore:</code> / <code>refactor:</code> now win first, and anything buried by a token rule while carrying a capability verb is flagged for human judgment.</li><li><strong>Jira CSV rows were not items at all.</strong> A row with no spaces failed the two-word test and was dropped before classification: six shipped items reported as <code>in=3 … reconciles=YES</code>. Lines are now counted first and classified second, and a line carrying a ticket key is always an item.</li><li><strong>The refusal marker was a skeleton key.</strong> Any document containing <code>Status: insufficient_input</code> skipped every check including leak detection, so notes leaking a commit hash and a ticket key passed clean.</li><li><strong><code>&lt;!-- INTERNAL</code> on line 1 emptied the customer section.</strong> <code>customer_section</code> splits on the marker and takes the first part; with the marker first, every leak check silently inspected an empty string.</li><li><strong>The leak list was a hardcoded copy of L3.</strong> Nine internal names were duplicated from the translation table in <code>context/L3-project.md</code>, guaranteed to drift the first time L3 grew. The validator reads the table directly.</li><li><strong>Two validators were non-deterministic.</strong> Leak findings were emitted from an unordered set: twelve runs produced twelve different outputs. Sorted.</li><li><strong><code>classify.py --json</code> returned 0 on a broken ledger</strong>, so a pipeline could consume a lossy classification and never know.</li><li><strong>The Eval Log described a fixture that did not exist.</strong> Row 3 claimed a leaky-notes input with "4/4 caught"; the third input was a clean file. The fixture now exists and is case 6.</li></ol><hr><h3>Output Contract — Release Archivist</h3>
 <p>Loaded on demand by SKILL.md §6. Normative.</p>
 <h4>Sections</h4>
 <p><code>H1 title</code> → one-sentence summary → <code>Breaking Changes</code> (only if any) → <code>New</code> → <code>Improved</code> → <code>Fixed</code> → internal appendix → coverage comment</p>
@@ -2267,41 +2269,33 @@ if __name__ == "__main__":
         sys.exit(0)
     except KeyboardInterrupt:
         sys.exit(130)
-</code></pre></details></div><div class="dpane" data-p="bb8" data-t="flow"><p class='muted'>A sprint of raw git commits becomes release notes you can send to a customer.</p><svg viewBox="0 0 940 210" class="flow" role="img"
-      aria-label="Pipeline for BB-8">
-  <defs><marker id="ar-bb8" markerWidth="9" markerHeight="9" refX="8" refY="3"
+</code></pre></details></div><div class="dpane" data-p="bb8" data-t="flow"><svg viewBox="0 0 940 210" class="flow" role="img" aria-label="Pipeline">
+  <defs><marker id="ar2-bb8" markerWidth="9" markerHeight="9" refX="8" refY="3"
     orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="rgba(255,255,255,.45)"/></marker></defs>
   <g font-family="var(--mono)" font-size="12">
-    <rect x="4" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)"
-      stroke="rgba(255,255,255,.18)"/>
+    <rect x="4" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.18)"/>
     <text x="79" y="92" text-anchor="middle" fill="rgba(255,255,255,.9)">messy input</text>
     <text x="79" y="112" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">human, unedited</text>
-
     <rect x="196" y="64" width="176" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="var(--amber)"/>
     <text x="284" y="88" text-anchor="middle" fill="var(--amber)">classify.py</text>
     <text x="284" y="108" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">deterministic</text>
     <text x="284" y="124" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">no model</text>
-
-    <rect x="414" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)"
-      stroke="rgba(255,255,255,.28)" stroke-dasharray="4 4"/>
+    <rect x="414" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-dasharray="4 4"/>
     <text x="489" y="92" text-anchor="middle" fill="rgba(255,255,255,.9)">the model</text>
     <text x="489" y="112" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">judgement only</text>
-
     <rect x="606" y="64" width="176" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="var(--amber)"/>
     <text x="694" y="88" text-anchor="middle" fill="var(--amber)">validate_output.py</text>
     <text x="694" y="108" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">contract check</text>
     <text x="694" y="124" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">can reject</text>
-
     <rect x="824" y="34" width="112" height="52" rx="5" fill="rgba(8,174,135,.10)" stroke="var(--taco-green-300)"/>
     <text x="880" y="65" text-anchor="middle" fill="var(--taco-green-300)">PASS</text>
     <rect x="824" y="112" width="112" height="52" rx="5" fill="rgba(230,101,104,.10)" stroke="var(--taco-red-300)"/>
     <text x="880" y="143" text-anchor="middle" fill="var(--taco-red-300)">REJECTED</text>
-
-    <path d="M158 99 H192" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-bb8)"/>
-    <path d="M376 99 H410" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-bb8)"/>
-    <path d="M568 99 H602" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-bb8)"/>
-    <path d="M786 99 H806 V60 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-bb8)"/>
-    <path d="M786 99 H806 V138 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-bb8)"/>
+    <path d="M158 99 H192" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-bb8)"/>
+    <path d="M376 99 H410" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-bb8)"/>
+    <path d="M568 99 H602" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-bb8)"/>
+    <path d="M786 99 H806 V60 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-bb8)"/>
+    <path d="M786 99 H806 V138 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-bb8)"/>
     <path d="M284 60 V30 H489 V60" fill="none" stroke="rgba(255,255,255,.22)" stroke-dasharray="3 5"/>
     <text x="386" y="22" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">
       refuses here if the input is underspecified</text>
@@ -2320,7 +2314,7 @@ if __name__ == "__main__":
   ok    validate_output.py &lt;- adversarial-missing-feature.md  [9709183a x3]
   ok    validate_output.py &lt;- adversarial-leak-only.md  [25ba3b6d x3]
 
-12/12 passed</code></pre></div></div></section><section class="panel" id="panel-r2d2" style="--accent:var(--sky)"><header class="panel-head"><div><span class="rail">R2-D2 · jira-scribe</span><h3>The Scribe</h3></div><nav class="dtabs"><button class="dtab" data-p="r2d2" data-t="skill" aria-selected="true">SKILL.md</button><button class="dtab" data-p="r2d2" data-t="contract">Output contract</button><button class="dtab" data-p="r2d2" data-t="context">Context (L2 / L3)</button><button class="dtab" data-p="r2d2" data-t="code">The code</button><button class="dtab" data-p="r2d2" data-t="flow">Diagram</button></nav></header><div class="panel-body"><div class="dpane on" data-p="r2d2" data-t="skill"><hr>
+12/12 passed</code></pre></div></div></section><section class="panel" id="panel-r2d2" style="--accent:var(--sky)"><header class="panel-head"><div><span class="rail">R2-D2 &middot; jira-scribe</span><h3>The Scribe</h3></div><nav class="dtabs"><button class="dtab" data-p="r2d2" data-t="skill" aria-selected="true">SKILL.md</button><button class="dtab" data-p="r2d2" data-t="contract">Contracts &amp; references</button><button class="dtab" data-p="r2d2" data-t="context">Context (L2 / L3)</button><button class="dtab" data-p="r2d2" data-t="code">The code</button><button class="dtab" data-p="r2d2" data-t="flow">Diagram</button></nav></header><div class="panel-body"><div class="dpane on" data-p="r2d2" data-t="skill"><hr>
 <p>name: jira-scribe description: Turns a vague brain dump, a chat message or a refinement-meeting transcript into a complete, Ready-for-Dev Jira user story with Gherkin acceptance criteria and technical hints. Use this whenever someone pastes rough notes, a one-line feature request, meeting minutes or a transcript and wants a ticket, story, task, or backlog item out of it — even if they do not say the word "Jira". Also use when asked to improve, complete or sanity-check an existing ticket that looks vague. ---</p>
 <h3>The System Scribe</h3>
 <h4>1. Identity</h4>
@@ -2409,8 +2403,10 @@ Status: insufficient_input</code></pre>
 <p><strong>Scope of the determinism claim.</strong> These cases exercise the <em>deterministic layer</em> — the scripts in <code>scripts/</code>. That is the whole point of the design: every mechanical decision is code, so it cannot vary. The model's contribution (acceptance-criteria wording, edge-case forecasting) is not run here and is not covered by the md5 comparison; it is constrained instead by the contract that <code>validate_output.py</code> enforces on whatever the model produces.</p>
 <p><strong>The golden set is a gate, not a document.</strong> <code>evals/golden/</code> is read by <code>run_evals.py</code> and compared field by field. Corrupt one decision in a golden file and the suite fails with a diff naming the field. It is worth being explicit that this was not previously true: the golden files existed and no code read them, so the suite was green while the extraction logic could have been changed freely.</p>
 <p><strong>Failure mode verified.</strong> On input 1 the agent returns <code>status: insufficient_input</code> and refuses to write the story. The transcript never decided what happens when a bookkeeper <em>attempts</em> a forbidden post. A story that guessed would have shipped the wrong error handling. <strong>The refusal is the correct output</strong>, and case 4 asserts that a well-formed refusal passes validation rather than being scored as a failure.</p>
+<p><strong>Deltas found and fixed.</strong> 8 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in <code>references/eval-deltas.md</code>.</p></div><div class="dpane" data-p="r2d2" data-t="contract"><h3>Eval deltas — jira-scribe</h3>
+<p>Every defect the harness or an auditor found in this agent, and what changed because of it. Kept out of <code>SKILL.md</code> so the file the model loads on every run carries instructions rather than history.</p>
 <p><strong>Deltas found and fixed.</strong></p>
-<ol><li><strong>Wrong actor picked silently.</strong> The glossary fallback took the first L3 actor appearing in the text. Given <em>"accountants yes, bookkeepers no"</em> it chose <code>accountant</code>, inverting the story. Now reports <code>actor_ambiguous</code> and asks.</li><li><strong>A noun became a person.</strong> <code>ACTOR_PAT</code> accepted <code>the|a</code> before a role word, so <em>"the admin console feels sluggish"</em> yielded <code>actor: admin, actor_source: explicit</code>. Only <code>as a/an</code> now counts as explicit, and a role followed by a compound-noun head (<code>console</code>, <code>portal</code>, <code>page</code>) is not an actor.</li><li><strong>The refusal marker was a skeleton key.</strong> Any document containing the string <code>insufficient_input</code> skipped every contract check — a story could declare READY FOR DEV, carry three <code>MISSING:</code> markers, name an assignee and omit every required section, and pass. A refusal is now a whole-document state, and refusing while also delivering is itself a violation.</li><li><strong><code></strong>READY FOR DEV<strong></code> in bold</strong> slipped past a check anchored on <code>^READY</code>. Emphasis is stripped before the comparison.</li><li><strong>The section-order check could never fire.</strong> It compared the found list against itself. It now compares document order against contract order.</li><li><strong>False positive on quoted prose.</strong> A story quoting a ticket containing the words "assigned to" was rejected as carrying assignee metadata. That check is now anchored to a metadata line.</li><li><strong>The fabrication guard was built but not installed.</strong> <code>--parsed</code> catches invented figures and nothing passed it; run as documented, the guard was inert. It is now wired into <code>run_evals.py</code> (case 6), checks <em>every</em> section rather than three, and ignores list ordinals.</li><li><strong>The suite documented three inputs and shipped two.</strong> Case 3 of the previous Eval Log described a fixture that did not exist, and <code>run_evals.py</code> printed <code>2/2 passed</code>. Both the fixture and the happy-path brain dump now exist.</li></ol></div><div class="dpane" data-p="r2d2" data-t="contract"><h3>Output Contract — Jira Scribe</h3>
+<ol><li><strong>Wrong actor picked silently.</strong> The glossary fallback took the first L3 actor appearing in the text. Given <em>"accountants yes, bookkeepers no"</em> it chose <code>accountant</code>, inverting the story. Now reports <code>actor_ambiguous</code> and asks.</li><li><strong>A noun became a person.</strong> <code>ACTOR_PAT</code> accepted <code>the|a</code> before a role word, so <em>"the admin console feels sluggish"</em> yielded <code>actor: admin, actor_source: explicit</code>. Only <code>as a/an</code> now counts as explicit, and a role followed by a compound-noun head (<code>console</code>, <code>portal</code>, <code>page</code>) is not an actor.</li><li><strong>The refusal marker was a skeleton key.</strong> Any document containing the string <code>insufficient_input</code> skipped every contract check — a story could declare READY FOR DEV, carry three <code>MISSING:</code> markers, name an assignee and omit every required section, and pass. A refusal is now a whole-document state, and refusing while also delivering is itself a violation.</li><li><strong><code></strong>READY FOR DEV<strong></code> in bold</strong> slipped past a check anchored on <code>^READY</code>. Emphasis is stripped before the comparison.</li><li><strong>The section-order check could never fire.</strong> It compared the found list against itself. It now compares document order against contract order.</li><li><strong>False positive on quoted prose.</strong> A story quoting a ticket containing the words "assigned to" was rejected as carrying assignee metadata. That check is now anchored to a metadata line.</li><li><strong>The fabrication guard was built but not installed.</strong> <code>--parsed</code> catches invented figures and nothing passed it; run as documented, the guard was inert. It is now wired into <code>run_evals.py</code> (case 6), checks <em>every</em> section rather than three, and ignores list ordinals.</li><li><strong>The suite documented three inputs and shipped two.</strong> Case 3 of the previous Eval Log described a fixture that did not exist, and <code>run_evals.py</code> printed <code>2/2 passed</code>. Both the fixture and the happy-path brain dump now exist.</li></ol><hr><h3>Output Contract — Jira Scribe</h3>
 <p>Loaded on demand by SKILL.md §6. Normative: if this file and prose disagree, this wins.</p>
 <h4>Sections — all required, this order</h4>
 <p><code>Title (H2)</code> → <code>Context</code> → <code>User Story</code> → <code>Acceptance Criteria</code> → <code>Technical Hints</code> → <code>Out of Scope</code> → <code>Open Questions</code> → <code>Readiness</code></p>
@@ -3103,41 +3099,33 @@ if __name__ == "__main__":
         sys.exit(0)
     except KeyboardInterrupt:
         sys.exit(130)
-</code></pre></details></div><div class="dpane" data-p="r2d2" data-t="flow"><p class='muted'>A half-formed thought in Slack becomes a Jira story a developer can start.</p><svg viewBox="0 0 940 210" class="flow" role="img"
-      aria-label="Pipeline for R2-D2">
-  <defs><marker id="ar-r2d2" markerWidth="9" markerHeight="9" refX="8" refY="3"
+</code></pre></details></div><div class="dpane" data-p="r2d2" data-t="flow"><svg viewBox="0 0 940 210" class="flow" role="img" aria-label="Pipeline">
+  <defs><marker id="ar2-r2d2" markerWidth="9" markerHeight="9" refX="8" refY="3"
     orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="rgba(255,255,255,.45)"/></marker></defs>
   <g font-family="var(--mono)" font-size="12">
-    <rect x="4" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)"
-      stroke="rgba(255,255,255,.18)"/>
+    <rect x="4" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.18)"/>
     <text x="79" y="92" text-anchor="middle" fill="rgba(255,255,255,.9)">messy input</text>
     <text x="79" y="112" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">human, unedited</text>
-
     <rect x="196" y="64" width="176" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="var(--sky)"/>
     <text x="284" y="88" text-anchor="middle" fill="var(--sky)">parse_input.py</text>
     <text x="284" y="108" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">deterministic</text>
     <text x="284" y="124" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">no model</text>
-
-    <rect x="414" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)"
-      stroke="rgba(255,255,255,.28)" stroke-dasharray="4 4"/>
+    <rect x="414" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-dasharray="4 4"/>
     <text x="489" y="92" text-anchor="middle" fill="rgba(255,255,255,.9)">the model</text>
     <text x="489" y="112" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">judgement only</text>
-
     <rect x="606" y="64" width="176" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="var(--sky)"/>
     <text x="694" y="88" text-anchor="middle" fill="var(--sky)">validate_output.py</text>
     <text x="694" y="108" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">contract check</text>
     <text x="694" y="124" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">can reject</text>
-
     <rect x="824" y="34" width="112" height="52" rx="5" fill="rgba(8,174,135,.10)" stroke="var(--taco-green-300)"/>
     <text x="880" y="65" text-anchor="middle" fill="var(--taco-green-300)">PASS</text>
     <rect x="824" y="112" width="112" height="52" rx="5" fill="rgba(230,101,104,.10)" stroke="var(--taco-red-300)"/>
     <text x="880" y="143" text-anchor="middle" fill="var(--taco-red-300)">REJECTED</text>
-
-    <path d="M158 99 H192" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-r2d2)"/>
-    <path d="M376 99 H410" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-r2d2)"/>
-    <path d="M568 99 H602" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-r2d2)"/>
-    <path d="M786 99 H806 V60 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-r2d2)"/>
-    <path d="M786 99 H806 V138 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-r2d2)"/>
+    <path d="M158 99 H192" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-r2d2)"/>
+    <path d="M376 99 H410" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-r2d2)"/>
+    <path d="M568 99 H602" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-r2d2)"/>
+    <path d="M786 99 H806 V60 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-r2d2)"/>
+    <path d="M786 99 H806 V138 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-r2d2)"/>
     <path d="M284 60 V30 H489 V60" fill="none" stroke="rgba(255,255,255,.22)" stroke-dasharray="3 5"/>
     <text x="386" y="22" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">
       refuses here if the input is underspecified</text>
@@ -3153,7 +3141,7 @@ if __name__ == "__main__":
   ok    validate_output.py &lt;- adversarial-ready-only.md  [79e4d9f0 x3]
   ok    validate_output.py &lt;- adversarial-gherkin-only.md  [2e77d8bf x3]
 
-9/9 passed</code></pre></div></div></section><section class="panel" id="panel-c3po" style="--accent:var(--gold)"><header class="panel-head"><div><span class="rail">C-3PO · code-sentinel</span><h3>The Code Sentinel</h3></div><nav class="dtabs"><button class="dtab" data-p="c3po" data-t="skill" aria-selected="true">SKILL.md</button><button class="dtab" data-p="c3po" data-t="contract">Output contract</button><button class="dtab" data-p="c3po" data-t="context">Context (L2 / L3)</button><button class="dtab" data-p="c3po" data-t="code">The code</button><button class="dtab" data-p="c3po" data-t="flow">Diagram</button></nav></header><div class="panel-body"><div class="dpane on" data-p="c3po" data-t="skill"><hr>
+9/9 passed</code></pre></div></div></section><section class="panel" id="panel-c3po" style="--accent:var(--gold)"><header class="panel-head"><div><span class="rail">C-3PO &middot; code-sentinel</span><h3>The Code Sentinel</h3></div><nav class="dtabs"><button class="dtab" data-p="c3po" data-t="skill" aria-selected="true">SKILL.md</button><button class="dtab" data-p="c3po" data-t="contract">Contracts &amp; references</button><button class="dtab" data-p="c3po" data-t="context">Context (L2 / L3)</button><button class="dtab" data-p="c3po" data-t="code">The code</button><button class="dtab" data-p="c3po" data-t="flow">Diagram</button></nav></header><div class="panel-body"><div class="dpane on" data-p="c3po" data-t="skill"><hr>
 <p>name: code-sentinel description: Reviews a pull request or git diff for logical defects, security anti-patterns, architectural drift and missing test coverage — deliberately ignoring anything a linter already catches. Use this whenever someone shares a .diff file, a PR link or description, a patch, or asks for a code review, a first-pass review, or a check before merge. Also use when asked whether a change is safe to merge or whether it violates the team's engineering standards. ---</p>
 <h3>The Code Sentinel</h3>
 <h4>1. Identity</h4>
@@ -3228,10 +3216,8 @@ No reviewable code found in the input.
 Status: insufficient_input</code></pre>
 <h4>10. Self-check</h4>
 <ul><li>[ ] Every finding carries a rule ID that exists in the loaded rule set</li><li>[ ] No finding on a path suppressed by the deviation registry</li><li>[ ] No finding about style, naming or formatting</li><li>[ ] Severities match the §6 tests</li><li>[ ] Coverage numbers reconcile: reviewed + skipped = files changed</li><li>[ ] If zero findings, that is stated plainly and no filler is added</li><li>[ ] <code>validate_findings.py</code> exits 0</li></ul>
-<h4>11. Calibration — training this agent on a new project</h4>
-<p>The reason a generic reviewer fails is that it does not know which deviations are deliberate. Fix that in four steps:</p>
-<ol><li><strong>Bootstrap</strong> — <code>python scripts/bootstrap_context.py &lt;repo&gt;</code> drafts <code>L3-project.md</code> from the README, ADRs, folder structure and the human comments on recent merged PRs. Every inferred rule is written with a confidence level and the evidence behind it.</li><li><strong>Ratify</strong> — a tech lead corrects the draft. <strong>The agent cannot ratify its own context.</strong> Rules left as <code>draft</code> stay dormant.</li><li><strong>Shadow</strong> — run advisory-only for one sprint. Humans tag findings <code>useful</code> / <code>noise</code> / <code>missed</code>.</li><li><strong>Learn</strong> — each <code>noise</code> becomes a deviation entry or a rule correction; each <code>missed</code> becomes a candidate rule. Re-run the golden set after every context change to confirm you removed a false positive without losing a true one.</li></ol>
-<p>Promote from advisory to required check once precision ≥ 80% on the golden set.</p>
+<h4>11. Calibration</h4>
+<p>Adopting this agent on a new repository means writing its L3 context and shadow-running it for one sprint before it becomes a required check. The protocol is in <code>references/calibration.md</code>.</p>
 <h4>12. Composition (optional)</h4>
 <p>If a <code>jira-scribe</code> story envelope is supplied, the agent may additionally check the diff against the story's acceptance criteria. This is <strong>strictly additive</strong> — with no story, the agent reviews the diff exactly as before. It never calls another agent and imports no code from one. Verified by the independence test in <code>evals/</code>.</p>
 <hr>
@@ -3243,8 +3229,13 @@ Status: insufficient_input</code></pre>
 <p><strong>Both directions are tested.</strong> Case 7 proves the agent cannot say what it cannot cite. Case 5 proves the opposite and harder thing: a review that <em>misses</em> a defect the parser already proved is a failed review. Given the same diff, a blind <code>APPROVE — no findings</code> now fails with <code>MISSED: 1 new branch with 0 test files touched, but no finding cites L2-TEST-01</code>. Precision without recall is a reviewer that approves everything and is never wrong.</p>
 <p><strong>Calibration verified.</strong> On input 1 the diff touches <code>legacy/billing/</code>, where a controller calls a repository directly — a real <code>L3-ARCH-01</code> violation that <code>DEV-004</code> declares intentional. The agent stays silent and says so under <em>Suppressed by Project Context</em>, while still flagging the genuine defect: authorisation decided by a client-supplied flag (<code>L2-SEC-05</code>).</p>
 <p><strong>Deviation expiry verified.</strong> <code>DEV-006</code> expired 2026-06. The agent resumed flagging <code>L3-EVENT-01</code> on <code>src/onboarding</code> with no human involvement. The calibration layer has a clock, so the registry cannot rot into a list of excuses.</p>
+<p><strong>Deltas found and fixed.</strong> 13 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in <code>references/eval-deltas.md</code>.</p></div><div class="dpane" data-p="c3po" data-t="contract"><h3>Calibration — adopting this agent on a new project</h3>
+<p>The reason a generic reviewer fails is that it does not know which deviations are deliberate. Fix that in four steps:</p>
+<ol><li><strong>Bootstrap</strong> — <code>python scripts/bootstrap_context.py &lt;repo&gt;</code> drafts <code>L3-project.md</code> from the README, ADRs, folder structure and the human comments on recent merged PRs. Every inferred rule is written with a confidence level and the evidence behind it.</li><li><strong>Ratify</strong> — a tech lead corrects the draft. <strong>The agent cannot ratify its own context.</strong> Rules left as <code>draft</code> stay dormant.</li><li><strong>Shadow</strong> — run advisory-only for one sprint. Humans tag findings <code>useful</code> / <code>noise</code> / <code>missed</code>.</li><li><strong>Learn</strong> — each <code>noise</code> becomes a deviation entry or a rule correction; each <code>missed</code> becomes a candidate rule. Re-run the golden set after every context change to confirm you removed a false positive without losing a true one.</li></ol>
+<p>Promote from advisory to required check once precision ≥ 80% on the golden set.</p><hr><h3>Eval deltas — code-sentinel</h3>
+<p>Every defect the harness or an auditor found in this agent, and what changed because of it. Kept out of <code>SKILL.md</code> so the file the model loads on every run carries instructions rather than history.</p>
 <p><strong>Deltas found and fixed.</strong></p>
-<ol><li><strong>Silent no-op.</strong> With <code>context/</code> absent, the loader reported mode <code>L2-only</code> while loading zero rules: the agent would review nothing, find nothing, and return a clean result. Now <code>NO-CONTEXT</code>, <code>FATAL</code>, exit 3 (case 4).</li><li><strong>The same failure, one layer down.</strong> A context file that <em>existed</em> but parsed to zero rows — a missing trailing pipe was enough — silently dropped all 12 org security rules with <code>usable=True</code> and no warning. An unparseable context is now a CONFIG error, not a smaller rule set.</li><li><strong>Draft rules were only dormant if spelled exactly <code>draft</code>.</strong> <code>draft (pending ADR-012)</code>, <code>not-ratified</code> and <code>DRAFT — do not use</code> all loaded as <strong>active</strong>, and findings citing them validated clean. Any provisional wording is now dormant, and an unrecognised status fails safe to dormant.</li><li><strong>A deviation nobody could read still silenced a rule.</strong> <code>Expires: TBD</code>, a blank expiry or <code>2027-6</code> left the suppression active forever. A deviation is only honoured when its expiry and target both parse.</li><li><strong>Suppression depended on path shape.</strong> <code>fnmatch</code> is case-insensitive on Windows and case-sensitive elsewhere, and <code>a/src/…</code> — the form a git diff actually emits — matched nothing. Paths are normalised and matched case-sensitively on every platform.</li><li><strong>The refusal marker was a skeleton key.</strong> Any review containing <code>Status: insufficient_input</code> skipped every check: a document with <code>APPROVE</code>, three BLOCKERs, severity <code>CATASTROPHIC</code>, an invented rule ID and a suppressed path passed clean (case 9).</li><li><strong><code>####</code> made a finding invisible.</strong> Findings were matched at <code>###</code> exactly, so one extra <code>#</code> removed a finding from validation entirely. Any heading depth is now parsed, and finding-shaped bold text is rejected rather than ignored.</li><li><strong><code></strong>Verdict:<strong> Approve</code></strong> passed a check keyed on uppercase <code>APPROVE</code>.</li><li><strong>A mixed-format diff parsed as one file.</strong> Keying only on <code>diff --git</code> meant the second file — carrying a hardcoded production key and a concatenated SQL query — was invisible, and the coverage count reported that with confidence (case 2).</li><li><strong>The coverage invariant was satisfiable by a lie.</strong> Four findings across four files while claiming <code>Reviewed: 0</code> still summed correctly. Distinct finding paths are now checked against the reviewed count and against the diff.</li><li><strong>A comment counted as a branch.</strong> <code>// … hidden button for bookkeepers</code> matched on the word <em>for</em>, inflating the test expectation with control flow that does not exist. Comments are stripped before branch detection; the golden moved 2 → 1 deliberately.</li><li><strong><code>src/generated/</code> was not skipped</strong> — only <code>*.generated.ts</code> matched. The agent was reviewing a generated API client. Reviewable went 3 → 2.</li><li><strong>The golden files were read by no code.</strong> <code>evals/golden/</code> existed and nothing compared against it, so the suite was green while a rule change could alter every decision unnoticed. <code>run_evals.py</code> now diffs against golden field by field, and <code>audit/run_audit.py</code> corrupts a golden on a copy to prove the gate bites.</li></ol></div><div class="dpane" data-p="c3po" data-t="contract"><h3>Output Contract — Code Sentinel</h3>
+<ol><li><strong>Silent no-op.</strong> With <code>context/</code> absent, the loader reported mode <code>L2-only</code> while loading zero rules: the agent would review nothing, find nothing, and return a clean result. Now <code>NO-CONTEXT</code>, <code>FATAL</code>, exit 3 (case 4).</li><li><strong>The same failure, one layer down.</strong> A context file that <em>existed</em> but parsed to zero rows — a missing trailing pipe was enough — silently dropped all 12 org security rules with <code>usable=True</code> and no warning. An unparseable context is now a CONFIG error, not a smaller rule set.</li><li><strong>Draft rules were only dormant if spelled exactly <code>draft</code>.</strong> <code>draft (pending ADR-012)</code>, <code>not-ratified</code> and <code>DRAFT — do not use</code> all loaded as <strong>active</strong>, and findings citing them validated clean. Any provisional wording is now dormant, and an unrecognised status fails safe to dormant.</li><li><strong>A deviation nobody could read still silenced a rule.</strong> <code>Expires: TBD</code>, a blank expiry or <code>2027-6</code> left the suppression active forever. A deviation is only honoured when its expiry and target both parse.</li><li><strong>Suppression depended on path shape.</strong> <code>fnmatch</code> is case-insensitive on Windows and case-sensitive elsewhere, and <code>a/src/…</code> — the form a git diff actually emits — matched nothing. Paths are normalised and matched case-sensitively on every platform.</li><li><strong>The refusal marker was a skeleton key.</strong> Any review containing <code>Status: insufficient_input</code> skipped every check: a document with <code>APPROVE</code>, three BLOCKERs, severity <code>CATASTROPHIC</code>, an invented rule ID and a suppressed path passed clean (case 9).</li><li><strong><code>####</code> made a finding invisible.</strong> Findings were matched at <code>###</code> exactly, so one extra <code>#</code> removed a finding from validation entirely. Any heading depth is now parsed, and finding-shaped bold text is rejected rather than ignored.</li><li><strong><code></strong>Verdict:<strong> Approve</code></strong> passed a check keyed on uppercase <code>APPROVE</code>.</li><li><strong>A mixed-format diff parsed as one file.</strong> Keying only on <code>diff --git</code> meant the second file — carrying a hardcoded production key and a concatenated SQL query — was invisible, and the coverage count reported that with confidence (case 2).</li><li><strong>The coverage invariant was satisfiable by a lie.</strong> Four findings across four files while claiming <code>Reviewed: 0</code> still summed correctly. Distinct finding paths are now checked against the reviewed count and against the diff.</li><li><strong>A comment counted as a branch.</strong> <code>// … hidden button for bookkeepers</code> matched on the word <em>for</em>, inflating the test expectation with control flow that does not exist. Comments are stripped before branch detection; the golden moved 2 → 1 deliberately.</li><li><strong><code>src/generated/</code> was not skipped</strong> — only <code>*.generated.ts</code> matched. The agent was reviewing a generated API client. Reviewable went 3 → 2.</li><li><strong>The golden files were read by no code.</strong> <code>evals/golden/</code> existed and nothing compared against it, so the suite was green while a rule change could alter every decision unnoticed. <code>run_evals.py</code> now diffs against golden field by field, and <code>audit/run_audit.py</code> corrupts a golden on a copy to prove the gate bites.</li></ol><hr><h3>Output Contract — Code Sentinel</h3>
 <p>Loaded on demand by SKILL.md §7. Normative.</p>
 <h4>Sections</h4>
 <p><code>H1 title</code> → <code>Scope/Context/Verdict header</code> → <code>Findings</code> → <code>Not Reviewed</code> → <code>Suppressed by Project Context</code> → <code>Coverage</code></p>
@@ -4687,41 +4678,33 @@ if __name__ == "__main__":
         sys.exit(0)
     except KeyboardInterrupt:
         sys.exit(130)
-</code></pre></details></div><div class="dpane" data-p="c3po" data-t="flow"><p class='muted'>A code change becomes a review that can only ever speak in citations.</p><svg viewBox="0 0 940 210" class="flow" role="img"
-      aria-label="Pipeline for C-3PO">
-  <defs><marker id="ar-c3po" markerWidth="9" markerHeight="9" refX="8" refY="3"
+</code></pre></details></div><div class="dpane" data-p="c3po" data-t="flow"><svg viewBox="0 0 940 210" class="flow" role="img" aria-label="Pipeline">
+  <defs><marker id="ar2-c3po" markerWidth="9" markerHeight="9" refX="8" refY="3"
     orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="rgba(255,255,255,.45)"/></marker></defs>
   <g font-family="var(--mono)" font-size="12">
-    <rect x="4" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)"
-      stroke="rgba(255,255,255,.18)"/>
+    <rect x="4" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.18)"/>
     <text x="79" y="92" text-anchor="middle" fill="rgba(255,255,255,.9)">messy input</text>
     <text x="79" y="112" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">human, unedited</text>
-
     <rect x="196" y="64" width="176" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="var(--gold)"/>
     <text x="284" y="88" text-anchor="middle" fill="var(--gold)">parse_diff.py</text>
     <text x="284" y="108" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">deterministic</text>
     <text x="284" y="124" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">no model</text>
-
-    <rect x="414" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)"
-      stroke="rgba(255,255,255,.28)" stroke-dasharray="4 4"/>
+    <rect x="414" y="64" width="150" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-dasharray="4 4"/>
     <text x="489" y="92" text-anchor="middle" fill="rgba(255,255,255,.9)">the model</text>
     <text x="489" y="112" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">judgement only</text>
-
     <rect x="606" y="64" width="176" height="70" rx="5" fill="rgba(255,255,255,.05)" stroke="var(--gold)"/>
     <text x="694" y="88" text-anchor="middle" fill="var(--gold)">validate_findings.py</text>
     <text x="694" y="108" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">contract check</text>
     <text x="694" y="124" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11">can reject</text>
-
     <rect x="824" y="34" width="112" height="52" rx="5" fill="rgba(8,174,135,.10)" stroke="var(--taco-green-300)"/>
     <text x="880" y="65" text-anchor="middle" fill="var(--taco-green-300)">PASS</text>
     <rect x="824" y="112" width="112" height="52" rx="5" fill="rgba(230,101,104,.10)" stroke="var(--taco-red-300)"/>
     <text x="880" y="143" text-anchor="middle" fill="var(--taco-red-300)">REJECTED</text>
-
-    <path d="M158 99 H192" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-c3po)"/>
-    <path d="M376 99 H410" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-c3po)"/>
-    <path d="M568 99 H602" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-c3po)"/>
-    <path d="M786 99 H806 V60 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-c3po)"/>
-    <path d="M786 99 H806 V138 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar-c3po)"/>
+    <path d="M158 99 H192" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-c3po)"/>
+    <path d="M376 99 H410" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-c3po)"/>
+    <path d="M568 99 H602" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-c3po)"/>
+    <path d="M786 99 H806 V60 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-c3po)"/>
+    <path d="M786 99 H806 V138 H820" fill="none" stroke="rgba(255,255,255,.45)" marker-end="url(#ar2-c3po)"/>
     <path d="M284 60 V30 H489 V60" fill="none" stroke="rgba(255,255,255,.22)" stroke-dasharray="3 5"/>
     <text x="386" y="22" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">
       refuses here if the input is underspecified</text>
@@ -4733,7 +4716,7 @@ if __name__ == "__main__":
   ok    parse_diff.py &lt;- 02-permissions.diff --brief  [a04994a7 x3] [golden ok]
   ok    validate_findings.py &lt;- valid-review.md (+brief diff)  [a0230a86 x3]
   ok    load_rules.py &lt;- context/  [af08522f x3]
-  ok    load_rules.py &lt;- NO CONTEXT (must refuse)  [c3cd3d3a x3]
+  ok    load_rules.py &lt;- NO CONTEXT (must refuse)  [87496da3 x3]
   ok    validate_findings.py &lt;- valid-review.md (+diff)  [a0230a86 x3]
   ok    validate_findings.py &lt;- valid-refusal.md  [a0230a86 x3]
   ok    validate_findings.py &lt;- adversarial-uncited-review.md  [12e52792 x3]
