@@ -193,6 +193,10 @@ called. Verified by the independence test in `evals/`.
 
 ---
 
+**None of this is implemented yet.** No script accepts a sibling's envelope — there
+is no `--story` flag here. The interchange convention exists so that it can be, and
+`scenario/SCENARIO.md` records what would change. Read this section as a roadmap.
+
 ## Eval Log
 
 Corpus: the fixtures in `evals/inputs/`, from `service-alpha`, anonymised.
@@ -245,4 +249,4 @@ a published entry is caught instead of reconciling perfectly against nothing.
 and a WIP commit. The agent emits the explicit *no customer-facing changes*
 notice rather than manufacturing content. Padding a thin release is a defect.
 
-**Deltas found and fixed.** 14 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.
+**Deltas found and fixed.** 15 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.

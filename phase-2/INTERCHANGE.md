@@ -8,6 +8,13 @@ verified by each agent's own validator, not by a shared runtime.
 
 ---
 
+> **Status: convention, not code.** Every script *emits* an envelope in this shape,
+> and each agent's own validator consumes its own parser's output. What no script
+> does yet is accept a *sibling's* envelope: there is no `--story` flag on the
+> Sentinel and no `--review` flag on the Archivist. The "also accepts" column below
+> is what this convention is for, not what it currently does.
+
+
 ## Why this is a convention and not a module
 
 If the agents shared code, deleting one would break the others, and a team could not adopt

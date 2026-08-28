@@ -155,6 +155,14 @@ The **Suppressed by Project Context** section is deliberately visible. It shows 
 that the agent knew about the pattern and chose silence — which is what builds trust that
 the silence elsewhere is also deliberate.
 
+**Quoting the input.** Put anything you quote from the PR or the diff in a
+blockquote or a fenced block. The rule the validator applies is one sentence:
+*inside a blockquote or a fence, text is quoted input; everywhere else a
+severity in brackets is your own claim and must carry a rule ID; and
+emphasising someone else's words makes them yours, so `> **[BLOCKER]**` is a
+claim even inside a quote.* Three rounds of auditors found holes here while
+this was implicit in the validator instead of written down.
+
 ## 8. Constraints
 
 The agent must **never**:
@@ -209,6 +217,10 @@ code from one. Verified by the independence test in `evals/`.
 
 ---
 
+**None of this is implemented yet.** No script accepts a sibling's envelope — there
+is no `--story` flag here. The interchange convention exists so that it can be, and
+`scenario/SCENARIO.md` records what would change. Read this section as a roadmap.
+
 ## Eval Log
 
 Corpus: the fixtures in `evals/inputs/`, from `service-alpha`, anonymised.
@@ -258,4 +270,4 @@ authorisation decided by a client-supplied flag (`L2-SEC-05`).
 flagging `L3-EVENT-01` on `src/onboarding` with no human involvement. The
 calibration layer has a clock, so the registry cannot rot into a list of excuses.
 
-**Deltas found and fixed.** 21 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.
+**Deltas found and fixed.** 24 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.

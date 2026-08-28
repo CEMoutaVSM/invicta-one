@@ -1,7 +1,1 @@
 PASS - all findings cited, scoped and in contract
-C:\dev\invicta-one\phase-2\code-sentinel\scripts\validate_findings.py:71: FutureWarning: Possible nested set at position 53
-  FINDING_LIKE = re.compile(
-C:\dev\invicta-one\phase-2\code-sentinel\scripts\validate_findings.py:90: FutureWarning: Possible nested set at position 43
-  EMPHASISED_SEV = re.compile(
-C:\dev\invicta-one\phase-2\code-sentinel\scripts\validate_findings.py:95: FutureWarning: Possible nested set at position 8
-  SMUGGLED_CELL = re.compile(r"^[*_`]*[[](?P<sev>" + SEV_WORDS + r")[]]", re.I)

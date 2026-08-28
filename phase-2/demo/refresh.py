@@ -16,7 +16,8 @@ So the verdicts are never written by hand. This script re-runs every step and
 records what actually happened; if an artefact no longer satisfies its contract
 the file says so, loudly, and this script exits 1.
 
-Usage:  python demo/refresh.py [--self-test]
+Usage:  python demo/refresh.py [--check|--self-test]
+        --check      fail if the committed traces are not what the code makes
         --self-test  feed the recorder a broken artefact; it must say so
 Exit:   0 every trace validates / 1 at least one does not
 """
@@ -112,10 +113,20 @@ def self_test() -> int:
 def main() -> int:
     if "--self-test" in sys.argv:
         return self_test()
-    failed = []
+    check = "--check" in sys.argv
+    failed, stale = [], []
     for trace in TRACES:
         agent = trace[0]
-        code, verdict = record(trace, HERE / agent)
+        out = HERE / agent
+        before = {f.name: f.read_bytes() for f in out.iterdir()} \
+            if out.exists() else {}
+        code, verdict = record(trace, out)
+        after = {f.name: f.read_bytes() for f in out.iterdir()}
+        if check and before != after:
+            stale.append(agent)
+            for name in sorted(set(before) | set(after)):
+                if before.get(name) != after.get(name):
+                    stale.append(f"    {agent}/{name}")
         state = "validates" if code == 0 else f"FAILS (exit {code})"
         print(f"  {agent:<20} {state}")
         if code != 0:
@@ -127,9 +138,17 @@ def main() -> int:
               f"{', '.join(failed)}")
         print("Fix the artefact, or the contract, before committing these.")
         return 1
+    if stale:
+        # Not a contract failure - a bookkeeping one. The committed trace is
+        # not what the code produces today, which is the defect this script
+        # was written to prevent and could not previously report.
+        print(f"{chr(10)}the committed traces are stale:")
+        for s in stale:
+            print(f"    {s}" if not s.startswith("    ") else s)
+        print("Run `python demo/refresh.py` and commit the result.")
+        return 1
     print(chr(10) + "every trace validates end to end")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

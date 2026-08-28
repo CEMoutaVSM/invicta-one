@@ -785,10 +785,12 @@ def round_five() -> None:
          it["class"] == "NOISE", it["class"])
     # O-1: numbers written into sentences had no generator, so one
     # classification change left an md5 transcript, a coverage line, two
-    # documents and the page's payload table stale at once.
-    c, o = sh(ROOT / "audit/refresh_figures.py", "--check")
-    case("O-01", "every figure embedded in prose matches the code",
-         c == 0, o.strip()[-300:])
+    # documents and the page's payload table stale at once. `verify.sh`
+    # runs `refresh_figures.py --check` directly; calling it from here as
+    # well made the two scripts run each other to 85 processes.
+    fig = (ROOT / "audit/refresh_figures.py").read_text(encoding="utf-8")
+    case("O-01", "a generator owns every figure embedded in prose",
+         "def rules(" in fig and "--check" in fig, "")
 
     # O-2: the recall claim - a review that MISSES a proven defect is a failed
     # review - lived only in this file, not in the scored artefact. The same
@@ -808,6 +810,79 @@ def round_five() -> None:
     case("O-03", "the demo's readable trace agrees with its own ledger",
          f"published={led['coverage']['published']}" in tbl,
          f"ledger says {led['coverage']['published']}")
+    # P-1: removing the 'only in a test file' condition from the bare-header
+    # downgrade was right for docs/ and catastrophic for source: a real PEM key
+    # puts its material on the NEXT line, so every genuine private key in
+    # production code was demoted to advisory and a blind APPROVE passed.
+    pem = D(["--- a/src/config.py", "+++ b/src/config.py", "@@ -1,2 +1,5 @@",
+             chr(43) + 'KEY = """-----BEGIN RSA PRIVATE KEY-----',
+             chr(43) + "MIIEowIBAAKCAQEAvJ8Kq2mN3pQrStUvWxYz0123456789abcdefghijklmnopqrs",
+             chr(43) + '-----END RSA PRIVATE KEY-----"""', ""])
+    c, o = sh(PD, w("p1.diff", pem))
+    case("P-01", "a real multi-line PEM key in source is demanded",
+         any(m["what"] == "private key" for m in json.loads(o)["must_flag"]),
+         o[:200])
+
+    # ...and the header alone, in documentation, still is not.
+    doc = D(["--- a/docs/format.md", "+++ b/docs/format.md", "@@ -1,2 +1,3 @@",
+             chr(43) + "-----BEGIN PRIVATE KEY-----", ""])
+    c, o = sh(PD, w("p1b.diff", doc))
+    case("P-01b", "a bare PEM header in docs is advisory only",
+         not json.loads(o)["must_flag"], o[:200])
+
+    # P-5: narrowing EXAMPLE_TOKEN to words made obvious filler a demand,
+    # forcing a reviewer to invent a finding about a dead key.
+    for tag, lit, want in (("zeros", "AKIA0000000000000000", False),
+                           ("hexword", "sk_live_deadbeefdead", False),
+                           ("real", "sk_live_00000004Qh8xZ2mPqRsTuVwX", True)):
+        d2 = D(["--- a/src/P.cs", "+++ b/src/P.cs", "@@ -1,2 +1,3 @@",
+                chr(43) + 'var k = "' + lit + '";', ""])
+        c, o = sh(PD, w(f"p5-{tag}.diff", d2))
+        got = bool(json.loads(o)["must_flag"])
+        case(f"P-05-{tag}", f"{lit[:26]} is {'demanded' if want else 'advisory'}",
+             got == want, f"demanded={got}")
+
+    # P-2/P-3: the severity convention, all four shapes. Quoted material is
+    # input; everywhere else a bracketed severity is the reviewer's claim; and
+    # emphasising someone else's words makes them yours.
+    for tag, extra, want in (
+            ("plain-prose", "One aside: [BLOCKER] the auth check can be bypassed.", 1),
+            ("emph-in-quote", "> **[BLOCKER]** the auth check can be bypassed.", 1),
+            ("emph-prose", "Also **[MAJOR]** the retry loop never exits.", 1),
+            ("plain-quote", "> This is a [BLOCKER] for the August release.", 0),
+            ("quote-leading", "> [BLOCKER] must land before August.", 0),
+            ("fenced", D(["```", "[BLOCKER] sample output", "```"]), 0)):
+        c, o = sh(VF, w(f"p2-{tag}.md", review + D(["", extra, ""])),
+                  "--today", "2026-08-06")
+        case(f"P-02-{tag}", f"severity convention holds for {tag}", c == want,
+             o.strip()[:160])
+
+    # P-4: dropping fix/close/resolve from the tracker words re-opened the leak
+    # for bare and ordinary-verb keys. Shape now works alongside announcement.
+    for tag, s2, want in (
+            ("ordinary-verb", "Fixed ACME-4521: export is faster", True),
+            ("bare", "We shipped the ACME-4521 integration", True),
+            ("bullet", "* ACME-4521 - improved export", True),
+            ("serial", "Now supports RS-232 serial devices", False),
+            ("hardware", "fixed RJ-45 detection and DDR-4 timing", False),
+            ("gpu", "supports HDR-10 and RTX-4090", False)):
+        got = bool(vo.ticket_keys_in(s2))
+        case(f"P-04-{tag}", f"ticket detection is right on: {s2[:34]}",
+             got == want, f"flagged={got}, expected={want}")
+
+    # P-10: verify.sh ran the trace recorder without --check, so a stale
+    # committed artefact was silently overwritten instead of turning it red.
+    c, o = sh(ROOT / "demo/refresh.py", "--check")
+    case("P-10", "the committed traces are what the code produces today",
+         c == 0, o.strip()[-240:])
+
+    # Q: no scratch file at the repo root. One was committed by `git add -A`,
+    # carrying a connection string, in a submission whose L2-SEC-01 forbids
+    # exactly that in source.
+    stray = [f.name for f in ROOT.iterdir()
+             if f.suffix in (".diff", ".log", ".tmp", ".bak")]
+    case("Q-01", "no scratch files at the repository root", not stray,
+         ", ".join(stray))
 
 def main() -> int:
     for fn in (sentinel_shapes, sentinel_precision, sentinel_recall,
@@ -818,6 +893,30 @@ def main() -> int:
         fn()
 
     verbose = "-v" in sys.argv
+    # The count this suite reports is stated in two documents. It is
+    # checked here rather than in `refresh_figures.py`, because only
+    # this file knows the number without running anything.
+    # The count this suite reports is stated in two documents. Checked here
+    # rather than in `refresh_figures.py`, because only this file knows the
+    # number without running anything - and the two scripts calling each
+    # other once produced 85 concurrent processes. It is a plain gate, not
+    # a case(), because a case would change the number it is checking.
+    stated, mismatched = len(RESULTS), []
+    for rel, pat in (("README.md", r"\*\*(\d+) checks\*\*"),
+                     ("presentation/index.html", r"holds (\d+) checks")):
+        path = ROOT / rel
+        text = path.read_text(encoding="utf-8")
+        m = re.search(pat, text)
+        if not m or int(m.group(1)) != stated:
+            if m and "--sync" in sys.argv:
+                path.write_text(re.sub(pat, lambda x: x.group(0).replace(
+                    x.group(1), str(stated)), text), encoding="utf-8")
+                print(f"  synced {rel} -> {stated} checks")
+            else:
+                mismatched.append(
+                    f"{rel} says {m.group(1) if m else None}, "
+                    f"this suite runs {stated}")
+
     failed = [r for r in RESULTS if not r[2]]
     print(f"auditor regressions — {len(RESULTS) - len(failed)}/{len(RESULTS)} held\n")
     for tag, desc, ok, detail in RESULTS:
@@ -825,11 +924,13 @@ def main() -> int:
             continue
         print(f"  {'ok  ' if ok else 'FAIL'} [{tag}] {desc}"
               + (f"\n         {detail}" if detail and not ok else ""))
-    if not failed:
+    for msg in mismatched:
+        print(f"  FAIL [count] {msg}")
+    if not failed and not mismatched:
         print("  every auditor finding is still fixed")
     else:
         print(f"\n{len(failed)} REGRESSION(S) - a defect an auditor found has returned")
-    return 1 if failed else 0
+    return 1 if (failed or mismatched) else 0
 
 
 if __name__ == "__main__":

@@ -61,3 +61,10 @@ loads on every run carries instructions rather than history.
     nothing, fell through to the whole-line fallback, and was filed FEATURE -
     after which the validator demanded a customer entry for it, extracting an
     invented note from a garbage line.
+15. **Dropping the ordinary verbs re-opened the leak.** `fix`, `close` and
+    `resolve` had to leave the tracker-word list because they are the everyday
+    verbs of a release note and were dragging `RJ-45` and `DDR-4` onto the leak
+    list - which left `Fixed ACME-4521:` and a bare `the ACME-4521 integration`
+    passing clean. A project key also has a shape a standard does not: three or
+    more letters, none of them digits, and a ticket-length number. Either signal
+    is now enough.

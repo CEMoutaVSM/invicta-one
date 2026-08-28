@@ -152,8 +152,32 @@ def strip_comments(s: str) -> str:
 # to fabricate one, which is the failure this scanner exists to prevent.
 EXAMPLE_TOKEN = re.compile(r"(?i)example|dummy|sample|fake|redacted|"
                            r"not[-_]?a[-_]?real|placeholder|changeme")
-# A PRIVATE KEY header with no key material after it is a header, not a key.
-KEY_MATERIAL = re.compile(r"-----\s*\S{16,}")
+# A PRIVATE KEY header with no key material after it is a header, not a key:
+# `docs/format.md` showing the format is documentation. The material is on
+# the FOLLOWING line in real PEM, which is why this is matched against the
+# file's added text rather than the header's own line.
+PEM_HEADER = re.compile(r"-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----")
+PEM_BODY = re.compile(r"^[\s+]*[A-Za-z0-9+/=]{32,}[\s]*$", re.M)
+
+
+def is_filler(tok: str) -> bool:
+    """A token whose body is padding rather than a credential.
+
+    `AKIA0000000000000000` and `sk_live_deadbeefdead` are obviously dead, and
+    demanding a finding for one forces a reviewer to invent a defect. A real
+    credential's body is high-entropy; filler is a handful of characters
+    repeated, or a hex word. `sk_live_00000004Qh8xZ2mPqRsTuVwX` is a real key
+    that merely contains a run of zeros, and must NOT be caught here.
+    """
+    body = re.sub(r"^(sk_live_|ghp_|gho_|ghs_|github_pat_|AKIA|prod-sk-|"
+                  r"xox[baprs]-)", "", tok)
+    if len(body) < 4:
+        return False
+    if len(set(body)) <= 2:                       # 0000000000, aaaaaaaa
+        return True
+    # entirely hexadecimal and built from very few distinct characters:
+    # deadbeefdead, cafebabecafe. A real key mixes the whole alphabet.
+    return bool(re.fullmatch(r"[0-9a-fA-F]+", body)) and len(set(body.lower())) <= 6
 
 
 def is_branch(line: str) -> bool:
@@ -190,7 +214,7 @@ def parse(text: str) -> dict:
         cur = {"path": path, "kind": kind, "skip_reason": reason,
                "added": 0, "removed": 0, "hunks": [],
                "new_branches": 0, "removed_branches": 0,
-               "secrets": [], "possible_secrets": []}
+               "secrets": [], "possible_secrets": [], "added_text": []}
         files.append(cur)
 
     lines = text.splitlines()
@@ -236,20 +260,21 @@ def parse(text: str) -> dict:
             # comment is documentation, not a leak, and demanding a finding for
             # it made an honest review impossible to write.
             code = strip_comments(line[1:])
+            cur["added_text"].append(code)
             for pat, what in SECRET_PAT:
                 if not (m2 := pat.search(code)):
                     continue
                 tok = m2.group(0)
-                # A vendor's published example key, and a bare PRIVATE KEY
-                # header in a test, are not credentials. Advisory, never a
+                # A vendor's published example key is not a credential, and
+                # neither is a token built from filler. Advisory, never a
                 # demand: forcing a reviewer to invent a finding about a
                 # non-defect is the worse of the two failure modes.
-                # A PRIVATE KEY header with nothing after it is a
-                # header. Gating that on the file being a test forced a
-                # finding for the same header in `docs/format.md`.
-                dead = bool(EXAMPLE_TOKEN.search(tok)) or (
-                    what == "private key" and not KEY_MATERIAL.search(code))
-                if dead:
+                if what == "private key":
+                    # Deferred. A real PEM key puts its material on the NEXT
+                    # line, so judging the header's own line demoted every
+                    # genuine key in production source to advisory.
+                    continue
+                if EXAMPLE_TOKEN.search(tok) or is_filler(tok):
                     note = f"{what} (reads as an example): {tok[:40]}"
                     if note not in cur["possible_secrets"]:
                         cur["possible_secrets"].append(note)
@@ -282,6 +307,23 @@ def parse(text: str) -> dict:
     else:
         status = "insufficient_input"
 
+    # A PRIVATE KEY header is judged against the whole file's added text, not
+    # the line it sits on: standard PEM puts `-----BEGIN ... KEY-----` on one
+    # line and its base64 body on the next. Testing the header's own line
+    # demoted every real key in production source to advisory - and a blind
+    # APPROVE then passed `--diff` validation.
+    for f in files:
+        body = "\n".join(f.pop("added_text", []))
+        if not PEM_HEADER.search(body):
+            continue
+        if PEM_BODY.search(body):
+            if "private key" not in f["secrets"]:
+                f["secrets"].append("private key")
+        else:
+            note = "private key header, no key material (reads as documentation)"
+            if note not in f["possible_secrets"]:
+                f["possible_secrets"].append(note)
+
     return {
         "agent": "code-sentinel",
         "version": "1.0",
@@ -305,6 +347,7 @@ def parse(text: str) -> dict:
         # Test files are included: a live key committed to a test is still live.
         # Every file, including generated and vendored ones. A live key
         # committed to `dist/bundle.min.js` is exactly as live as one in source,
+
         # and restricting this to reviewable paths let it through untouched.
         "must_flag": [{"path": f["path"], "rule": "L2-SEC-01", "what": w}
                       for f in files for w in f["secrets"]],

@@ -89,3 +89,23 @@ loads on every run carries instructions rather than history.
     proven defect is a failed review" was asserted in `SKILL.md` and tested only
     in `audit/regressions.py`. Two Eval Log cases now carry it: the same blind
     `APPROVE` passes without `--diff` and fails with it.
+22. **Every real private key in production source was demoted to advisory.** My
+    own fix from the previous round: removing the "only in a test file"
+    condition from the bare-header downgrade was right for `docs/format.md` and
+    catastrophic for source, because a real PEM key puts `-----BEGIN ... KEY-----`
+    on one line and its base64 body on the NEXT. Testing the header's own line
+    demoted the genuine article every time, and a blind `APPROVE` passed
+    `--diff`. The header is now judged against the file's whole added text.
+23. **Obvious filler forced a fabricated finding.** Narrowing the example test
+    to words meant `AKIA0000000000000000` and `sk_live_deadbeefdead` DEMANDED an
+    `L2-SEC-01`. A credential's body is high-entropy; filler is a couple of
+    characters repeated, or a hex word.
+24. **The severity rule was half a convention, three times running.** Anchoring
+    to the start of a line let `One aside: [BLOCKER] the auth check can be
+    bypassed` pass mid-paragraph; requiring emphasis let the plain form pass and
+    exempted blockquotes so completely that `> **[BLOCKER]**` hid inside one.
+    Each fix closed one hole and opened another because none of them said what a
+    blockquote MEANS. One sentence now does, in `severity_claims` and in §7:
+    *inside a blockquote or a fence, text is quoted input; everywhere else a
+    bracketed severity is the reviewer's own claim; and emphasising someone
+    else's words makes them yours.*

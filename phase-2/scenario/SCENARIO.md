@@ -34,7 +34,7 @@ must say in *Suppressed by Project Context* that it knew. It must still flag the
 defect: an authorisation check on the client only, violating `L2-SEC-05`.
 
 **Stage 3 — the Archivist accounts for everything.** The sprint log has 15 lines, of
-which 5 are pure noise and 4 internal. The published notes carry 7 items and the coverage
+which 4 are pure noise and 4 internal. The published notes carry 7 items and the coverage
 comment reconciles to 15. Nothing vanishes.
 
 ---

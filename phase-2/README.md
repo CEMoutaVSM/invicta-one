@@ -56,7 +56,7 @@ d29a32c9b5e1f02cd803d44f24191f28
   [OK ] jira-scribe         ran with code-sentinel, release-archivist removed
          9/9 passed
   [OK ] code-sentinel       ran with jira-scribe, release-archivist removed
-         15/15 passed
+         17/17 passed
   [OK ] release-archivist   ran with jira-scribe, code-sentinel removed
          12/12 passed
 ```
@@ -120,7 +120,7 @@ mid-sentence reversals, duplicate ticket keys.
 |---|---|---|---|---|
 | `release-archivist` | 12 | 4 | 10 | classification, line-level ledger, per-entry attribution, leak detection, refusal |
 | `jira-scribe` | 9 | 3 | 8 | transcript refusal, brain-dump happy path, contract validation, fabrication guard |
-| `code-sentinel` | 15 | 5 | 10 | diff parsing, rule loading, citation rule, recall, secret detection, NO-CONTEXT refusal |
+| `code-sentinel` | 17 | 5 | 11 | diff parsing, rule loading, citation rule, recall, secret detection, NO-CONTEXT refusal |
 
 Run them yourself: `python <agent>/scripts/run_evals.py` in any agent folder, or
 `./verify.sh` for everything. `verify.sh` also replays the end-to-end traces in
@@ -151,10 +151,9 @@ repository where the whole loop is visible.
 
 ### Defects found and fixed
 
-Each agent's own list is in `<agent>/references/eval-deltas.md` — **43 in total**,
-14 in the Archivist, 8 in the Scribe, 21 in the Sentinel. Eleven were found by
-the build-time harness; the rest by **twelve independent auditors across six
-rounds**, each running in a clean context, blind to the others and forbidden from
+Each agent's own list is in `<agent>/references/eval-deltas.md` — **47 in total**,
+15 in the Archivist, 8 in the Scribe, 24 in the Sentinel. Eleven were found by
+the build-time harness; the rest by **fourteen independent auditors**, each running in a clean context, blind to the others and forbidden from
 reading this project's own conclusions. Count them yourself: every check in
 `audit/regressions.py` carries the tag of the auditor that found it.
 
@@ -176,7 +175,7 @@ failed open.** A regex that did not match returned "clean" rather than
 to be caught.
 
 Every one is now a permanent test. `audit/regressions.py` reproduces them as
-**106 checks**, each tagged with the auditor and finding it descends from, so a
+**125 checks**, each tagged with the auditor and finding it descends from, so a
 failure names which defect returned rather than merely that something broke.
 
 ### Failure modes verified

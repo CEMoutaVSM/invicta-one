@@ -196,6 +196,10 @@ about this agent's behaviour — verified by the independence test in `evals/`.
 
 ---
 
+**None of this is implemented yet.** No script accepts a sibling's envelope — there
+is no `--review` flag here. The interchange convention exists so that it can be, and
+`scenario/SCENARIO.md` records what would change. Read this section as a roadmap.
+
 ## Eval Log
 
 Corpus: the fixtures in `evals/inputs/`, from `service-alpha`, anonymised.

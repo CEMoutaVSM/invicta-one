@@ -39,7 +39,7 @@ if [ "$rc" -ne 0 ]; then
   printf '%s
 ' "$out" | sed 's/^/  /'
 fi
-out=$( "$PY" demo/refresh.py 2>&1 ); rc=$?
+out=$( "$PY" demo/refresh.py --check 2>&1 ); rc=$?
 printf '%s\n' "$out" | tail -1
 if [ "$rc" -ne 0 ]; then
   fail=1
@@ -47,7 +47,7 @@ if [ "$rc" -ne 0 ]; then
 fi
 
 echo; echo "=== auditor regressions ==="
-# Every defect ten independent auditors found, reproduced as a test. The
+# Every defect fourteen independent auditors found, reproduced as a test. The
 # per-agent suites prove the agents work; these prove that a finding which was
 # fixed has not quietly come back.
 out=$( "$PY" audit/regressions.py 2>&1 ); rc=$?

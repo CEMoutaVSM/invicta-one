@@ -222,6 +222,7 @@ That last one is the test that proves calibration works.
 | **Coverage** | Input items accounted for (published + explicitly suppressed) | 100% |
 | **Precision** | Findings a human accepts ÷ total findings | ≥ 80% |
 | **Hallucination rate** | Claims not traceable to input or a cited rule | 0% |
+| **Refusal correctness** | Under-specified inputs that trigger the failure mode instead of a guess | 100% |
 
 **Which of these a suite can actually measure.** The first three and refusal
 correctness are checked by `verify.sh` on every run. Precision and hallucination
@@ -230,7 +231,6 @@ calibration targets for the shadow-run in §5.4, not numbers this repository can
 produce. What the repository enforces instead is structural: a finding without a
 cited rule is rejected, and a number absent from the input is rejected — which bounds
 hallucination without claiming to have measured it.
-| **Refusal correctness** | Under-specified inputs that trigger the failure mode instead of a guess | 100% |
 
 Coverage is how the Archivist proves "zero missing features": every input line is either published or suppressed with a reason, and the totals must reconcile.
 

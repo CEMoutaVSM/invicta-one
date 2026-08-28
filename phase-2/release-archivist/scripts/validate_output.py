@@ -179,10 +179,14 @@ ANNOUNCED = re.compile(
     r"ref\w*|see|jira|backlog)"
     r"(?:\s+(?:as|in|to|at|by|for|under|via|on))?\W{0,4}$")
 # Years and service levels are never keys, announced or not.
+# Prefixes that name a standard, a measurement, a place or a piece of hardware.
 NOT_TRACKERS = {"SLA", "ISO", "RFC", "GDPR", "CVE", "PCI", "SOC", "ITIL",
                 "IEEE", "ANSI", "UTF", "SHA", "AES", "RSA", "TLS", "SSL",
                 "HTTP", "API", "OKR", "KPI", "EU", "US", "UK", "PT", "DK",
-                "NO", "SE", "FI", "NL", "DE", "FY", "IE", "COVID"}
+                "NO", "SE", "FI", "NL", "DE", "FY", "IE", "COVID",
+                "RS", "RJ", "RTX", "GTX", "RX", "GT", "DDR", "HDR", "UHD",
+                "USB", "HDMI", "SATA", "NVME", "ARM", "IPV", "MW", "KW",
+                "KB", "MB", "GB", "TB", "IP", "AC", "DC"}
 
 
 def ticket_keys_in(text: str) -> list[str]:
@@ -197,9 +201,19 @@ def ticket_keys_in(text: str) -> list[str]:
         closer = text[m.end():m.end() + 1]
         # ...or standing alone in brackets, with enough digits to be a ticket
         # number rather than a standard: `[US-4521]` yes, `(RJ-45)` no.
+        # ...or standing alone in brackets, with enough digits to be a ticket
+        # number rather than a standard: `[US-4521]` yes, `(RJ-45)` no.
         announced = bool(ANNOUNCED.search(before)) or (
             opener in "([" and closer in ")]" and len(num) >= 3)
-        if not announced:
+        # A project key also has a shape a standard does not: three or more
+        # letters, no digits among them, and a ticket-length number. Requiring
+        # an announcement as the ONLY signal let `Fixed ACME-4521:` and a bare
+        # `the ACME-4521 integration` leak, because `fix` and `close` had to be
+        # dropped from the tracker words - they are the ordinary verbs of a
+        # release note and were dragging RJ-45 and DDR-4 onto the leak list.
+        keyish = (len(prefix) >= 3 and prefix.isalpha() and len(num) >= 3
+                  and prefix not in NOT_TRACKERS)
+        if not (announced or keyish):
             continue
         if prefix in NOT_TRACKERS and len(num) <= 2:
             continue                      # SLA-95, KPI-77: a level, not a key
