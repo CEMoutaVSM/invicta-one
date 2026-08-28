@@ -54,11 +54,11 @@ ab2eca44da29875d7110d1cd2cc26f5d
 ```
 === INDEPENDENCE TEST — the other two agents are DELETED ===
   [OK ] jira-scribe         ran with code-sentinel, release-archivist removed
-         6/6 passed
+         9/9 passed
   [OK ] code-sentinel       ran with jira-scribe, release-archivist removed
-         10/10 passed
+         15/15 passed
   [OK ] release-archivist   ran with jira-scribe, code-sentinel removed
-         7/7 passed
+         12/12 passed
 ```
 
 The runner physically copies each agent into an empty tree and runs that
@@ -91,7 +91,8 @@ of excuses. When one expires, the agent starts flagging again on its own.
 And the citation rule is enforced by code, not by hope:
 
 ```
-$ python code-sentinel/scripts/validate_findings.py bad-review.md
+$ python code-sentinel/scripts/validate_findings.py \
+    code-sentinel/evals/inputs/adversarial-uncited-review.md --today 2026-08-06
 FAIL (6 violation(s))
   - [BLOCKER] Controller talks straight to the repository: L3-ARCH-01 is
     SUPPRESSED on legacy/billing/InvoiceController.cs by DEV-004 - this is a
@@ -108,21 +109,22 @@ FAIL (6 violation(s))
 ## Eval Log
 
 Per-agent eval logs live at the bottom of each `SKILL.md`, as the brief requires.
-This is the combined view: **23 cases over 18 input files**, all green.
+This is the combined view: **36 cases over 28 input files**, all green.
 
 Corpus: real sprint artefacts from `service-alpha`, anonymised with a fixed
 substitution map (service names to `service-alpha`, people to first names,
 tickets to `PROJ-`). Mess deliberately preserved: typos, mixed PT/EN, filler,
-mid-sentence reversals, duplicate ticket keys. Date: 2026-08-06.
+mid-sentence reversals, duplicate ticket keys.
 
-| Agent | Cases | Golden-gated | Covers |
-|---|---|---|---|
-| `release-archivist` | 7 | 2 | classification, line-level ledger, leak detection, missing-entry detection, refusal |
-| `jira-scribe` | 6 | 2 | transcript refusal, brain-dump happy path, contract validation, fabrication guard |
-| `code-sentinel` | 10 | 3 | diff parsing, rule loading, citation rule, recall, suppression, NO-CONTEXT refusal |
+| Agent | Cases | Golden-gated | Inputs | Covers |
+|---|---|---|---|---|
+| `release-archivist` | 12 | 4 | 10 | classification, line-level ledger, per-entry attribution, leak detection, refusal |
+| `jira-scribe` | 9 | 3 | 8 | transcript refusal, brain-dump happy path, contract validation, fabrication guard |
+| `code-sentinel` | 15 | 5 | 10 | diff parsing, rule loading, citation rule, recall, secret detection, NO-CONTEXT refusal |
 
 Run them yourself: `python <agent>/scripts/run_evals.py` in any agent folder, or
-`./verify.sh` for everything.
+`./verify.sh` for everything. `verify.sh` also replays the end-to-end traces in
+`demo/`, and runs the auditor regression suite described below.
 
 ### What each case actually asserts
 
@@ -144,55 +146,36 @@ design. Every mechanical decision is code, so it cannot vary. The model's
 contribution (customer wording, acceptance criteria, judging defect vs design) is
 not executed here and is not covered by the md5 comparison. It is constrained
 instead by the contracts the validators enforce on whatever the model produces.
-Claiming "3 runs, fresh context" for a pipeline that never invokes a model would
-assert more than the harness measures.
+`demo/` holds one end-to-end trace per agent, which is the only place in this
+repository where the whole loop is visible.
 
-### Deltas found and fixed
+### Defects found and fixed
 
-Reported rather than hidden, because the fixes are the evidence that the harness
-works. The first eleven were found by the build-time harness. The rest came from
-a four-auditor adversarial sweep, each auditor in a clean context, blind to the
-others and to this repository's own conclusions.
+Each agent's own list is in `<agent>/references/eval-deltas.md` — **31 in total**,
+10 in the Archivist, 8 in the Scribe, 13 in the Sentinel. Eleven were found by
+the build-time harness; the rest by **eight independent auditors across three
+rounds**, each running in a clean context, blind to the others and forbidden from
+reading this project's own conclusions.
 
-**Found while building (11).** `add regression test` classified FEATURE;
-`src/generated/` not skipped; the Scribe finding no actor in natural speech; the
-runner scoring a correct refusal as a failure; the **silent no-op** where a
-missing `context/` produced a clean review of unchecked code; `APPROVE` alongside
-a BLOCKER; an empty rule set blamed on each finding; `run_evals.py` documented but
-never written; the **wrong actor picked silently** from an ambiguous transcript;
-`references/output-contract.md` cited as normative but absent; and no Eval Log in
-any `SKILL.md`.
+The ones worth naming, because they are the ones a reader will not expect:
 
-**Found by the adversarial sweep (16).** Grouped by root cause:
+| Defect | Why it mattered |
+|---|---|
+| **A single line disabled every validator.** All three opened with a substring test for `insufficient_input` and returned early | A review declaring APPROVE with three BLOCKERs, an invented rule ID and a suppressed path passed clean |
+| **The regression gate did not exist.** `evals/golden/` was read by no code | Sabotaging two rules changed six decisions; every suite stayed green |
+| **Zero-loss was a tautology.** The class buckets partition the items, so the identity could not fail | 40,000 fuzzed inputs, zero failures. Deleting a shipped feature passed |
+| **A guarantee weakened by its own author.** Letting the model reclassify uncertain lines was implemented as a *count*, which also permitted deleting a shipped feature | Now every published entry names the input line it reports, so the check is about *which* features shipped |
+| **Security demands that forced a lie.** The secret scanner fired on `// api_key = "your-key-here"` in a comment | An honest reviewer could not pass without fabricating a finding. It now demands only vendor-issued token formats |
+| **The compliance audit counted table rows, not inputs** | `35/35 ALL GREEN` while an agent shipped two of the three required eval inputs — a scored requirement, missed by the check meant to catch it |
 
-| # | Defect | Why it mattered |
-|---|---|---|
-| 1 | **The refusal marker was a skeleton key.** All three validators opened with a substring test for `insufficient_input` and returned early | A review declaring APPROVE with three BLOCKERs, an invented rule ID and a suppressed path passed clean. Same for notes leaking a hash and a ticket key |
-| 2 | **The golden sets were read by no code** | The regression gate did not exist. Sabotaging two rules changed six decisions; every suite stayed green |
-| 3 | **"Zero missing features" was a tautology** | The buckets partition the items, so the identity could not fail. 40,000 fuzzed inputs, zero failures. Deleting a shipped feature from the notes passed |
-| 4 | **Six features silently reclassified as NOISE** | Token heuristics ran ahead of `feat:`, so `feat: add dashboard widget` was buried on the word *dashboard*, unflagged |
-| 5 | **Jira CSV rows were never items** | Six shipped items reported as `in=3 ... reconciles=YES` |
-| 6 | **An unparseable context loaded zero rules and reported `usable`** | A missing trailing pipe dropped all 12 org security rules with no warning: the silent no-op again, one layer down |
-| 7 | **Draft rules were dormant only if spelled exactly `draft`** | `draft (pending ADR-012)` and `not-ratified` loaded as active and validated findings clean |
-| 8 | **An unreadable expiry suppressed forever** | `Expires: TBD` kept a deviation alive past any date, rejecting a real SQL-injection BLOCKER as a false positive |
-| 9 | **Suppression depended on path shape** | `a/src/...`, the form a git diff actually emits, matched nothing; `fnmatch` also made matching case-sensitive on Linux and not on Windows |
-| 10 | **`####` made a finding invisible**, and `Approve` beat a check keyed on `APPROVE` | One extra `#` removed a finding from validation entirely |
-| 11 | **A mixed-format diff parsed as one file** | The second file, carrying a hardcoded production key and a concatenated SQL query, was invisible, and the coverage count said so confidently |
-| 12 | **Recall was enforced by nothing** | A blind "APPROVE, no findings" on a diff with a planted hole passed. `validate_findings.py --diff` now fails a review that misses what the parser proved |
-| 13 | **The fabrication guard was built but not installed** | `--parsed` catches invented figures; nothing passed it, and it only checked three of seven sections |
-| 14 | **Two validators were non-deterministic** | Leak findings came from an unordered set: twelve runs, twelve outputs. The headline reliability claim was false where nobody had looked |
-| 15 | **The independence test was near-vacuous** | It ran one parser per agent. A tree with every validator, context file and golden set deleted still printed `independence PASS` |
-| 16 | **The compliance audit counted table rows, not inputs** | `35/35 ALL GREEN` while `jira-scribe` shipped two of the three required eval inputs: a scored requirement, missed by the check meant to catch it |
-
-Two smaller ones worth naming: `<!-- INTERNAL` on line 1 emptied the customer
-section, so every leak check inspected an empty string; and a code comment
-reading *"hidden button for bookkeepers"* was counted as a new branch on the
-word *for*.
-
-The pattern across almost all sixteen: **the logic was sound and the input
-parsing failed open.** A regex that did not match returned "clean" rather than
+The pattern across most of them: **the logic was sound and the input parsing
+failed open.** A regex that did not match returned "clean" rather than
 "unparseable". The defences were real, and reachable only by inputs that agreed
 to be caught.
+
+Every one is now a permanent test. `audit/regressions.py` reproduces them as
+**74 checks**, each tagged with the auditor and finding it descends from, so a
+failure names which defect returned rather than merely that something broke.
 
 ### Failure modes verified
 

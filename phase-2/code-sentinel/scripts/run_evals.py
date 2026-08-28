@@ -51,6 +51,10 @@ def project_diff(out: str) -> dict:
         "decisions": {f["path"]: {"kind": f["kind"],
                                   "skip_reason": f["skip_reason"]}
                       for f in d["files"]},
+        # Projected because it is a decision the reviewer is held to. Omitting
+        # it meant the entire secret scan could be deleted with every eval and
+        # every compliance check still green.
+        "must_flag": d.get("must_flag", []),
         "test_expectation": d["test_expectation"],
     }
 

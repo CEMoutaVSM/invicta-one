@@ -43,23 +43,50 @@ SKIP = [
     (re.compile(r"(^|/)migrations?/.*\.(sql|Designer\.cs)$"), "migration artefact"),
     (re.compile(r"\.(png|jpg|jpeg|gif|svg|ico|woff2?|ttf|pdf)$"), "binary asset"),
 ]
+# `test_calc.py` is pytest's default naming and was classified reviewable, so a
+# diff that added a branch *and its test* was still reported as untested and the
+# review was rejected for missing a defect that did not exist.
 TEST_PAT = re.compile(r"(^|/)(tests?|spec|__tests__)/|"
-                      r"\.(test|spec)\.[jt]sx?$|Tests?\.cs$|_test\.py$", re.I)
+                      r"\.(test|spec)\.[jt]sx?$|Tests?\.cs$|"
+                      r"(^|/)test_[\w.-]+\.py$|_test\.(py|go|rb)$|"
+                      r"_spec\.rb$|Test\.java$|Spec\.scala$", re.I)
 
 # High-confidence secrets. These need no judgement at all, and the recall check
 # used to hinge only on new branches — so a diff that added a live key while
 # touching no control flow triggered nothing, and an APPROVE sailed through.
 # A test file counts: a production credential in a test is still a production
 # credential.
+# Only vendor-issued token formats. Each is unambiguous: nothing but a real
+# credential looks like this, so demanding a finding cannot be wrong.
+#
+# A broader `password = "..."` rule was here and had to go. It fired on
+# `// api_key = "your-key-here"` in a comment, on `password = "changeme"`, and
+# on `secret = "billing-api-key"` naming a vault entry. The reviewer then could
+# not pass without raising a finding about something that was not a defect —
+# an agent that forces you to fabricate is worse than one that stays quiet.
+# Anything requiring judgement now lands in `possible_secrets`, which the model
+# is asked to look at and the validator does not demand.
 SECRET_PAT = [
-    (re.compile(r"\bsk_live_[A-Za-z0-9]{8,}"), "Stripe live secret key"),
+    (re.compile(r"\bsk_live_[A-Za-z0-9]{12,}"), "Stripe live secret key"),
     (re.compile(r"\b(?:ghp|gho|ghs|github_pat)_[A-Za-z0-9_]{20,}"), "GitHub token"),
-    (re.compile(r"\bAKIA[0-9A-Z]{12,}"), "AWS access key id"),
+    (re.compile(r"\bAKIA[0-9A-Z]{16}"), "AWS access key id"),
+    (re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}"), "Slack token"),
+    (re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"), "private key"),
     (re.compile(r"\bprod-sk-[A-Za-z0-9]{6,}"), "production secret key"),
-    (re.compile(r"(?i)\b(password|passwd|pwd|secret|api[_-]?key|conn(?:ection)?"
-                r"[_-]?string)\b\s*[:=]\s*[\"'][^\"'\s]{6,}[\"']"),
-     "hardcoded credential"),
 ]
+
+# Worth a human's eye, never a demand. Placeholders are excluded so the model is
+# not sent to look at `changeme`.
+MAYBE_SECRET = re.compile(
+    r"(?i)\b(password|passwd|pwd|secret|api[_-]?key|token|conn(?:ection)?"
+    r"[_-]?string)\b\s*[:=]\s*[\"'][^\"'\s]{6,}[\"']")
+PLACEHOLDER = re.compile(
+    r"(?i)your[-_ ]?(key|secret|token)|changeme|placeholder|example|dummy|sample|"
+    r"redacted|xxx+|\.\.\.|<[^>]+>|\$\{|%s|\{\{|TODO|FIXME|test[-_]?key|"
+    r"fake|not[-_]?a[-_]?real")
+# A token split across a concatenation still ships a credential.
+SPLIT_SECRET = re.compile(r"[\"'](?:sk_live_|ghp_|AKIA|prod-sk-|xox[baprs]-)"
+                          r"[A-Za-z0-9_-]*[\"']\s*[+.,]\s*[\"']")
 
 # Conditional branches touched by the diff. Both directions matter: adding a
 # branch needs a test, and *removing* one (a deleted guard) changes control
@@ -110,7 +137,8 @@ def parse(text: str) -> dict:
         kind, reason = classify(path)
         cur = {"path": path, "kind": kind, "skip_reason": reason,
                "added": 0, "removed": 0, "hunks": [],
-               "new_branches": 0, "removed_branches": 0, "secrets": []}
+               "new_branches": 0, "removed_branches": 0,
+               "secrets": [], "possible_secrets": []}
         files.append(cur)
 
     lines = text.splitlines()
@@ -152,9 +180,19 @@ def parse(text: str) -> dict:
             cur["added"] += 1
             if is_branch(line):
                 cur["new_branches"] += 1
+            # Comments are stripped first: an example credential written in a
+            # comment is documentation, not a leak, and demanding a finding for
+            # it made an honest review impossible to write.
+            code = COMMENT.sub("", line[1:])
             for pat, what in SECRET_PAT:
-                if pat.search(line[1:]) and what not in cur["secrets"]:
+                if pat.search(code) and what not in cur["secrets"]:
                     cur["secrets"].append(what)
+            if SPLIT_SECRET.search(code) and "split credential" not in cur["secrets"]:
+                cur["secrets"].append("split credential")
+            if MAYBE_SECRET.search(code) and not PLACEHOLDER.search(code):
+                snippet = MAYBE_SECRET.search(code).group(0).strip()[:60]
+                if snippet not in cur["possible_secrets"]:
+                    cur["possible_secrets"].append(snippet)
         elif line.startswith("-"):
             cur["removed"] += 1
             if is_branch(line):
@@ -197,9 +235,14 @@ def parse(text: str) -> dict:
         },
         # Defects the parser is certain about, so the review cannot omit them.
         # Test files are included: a live key committed to a test is still live.
+        # Every file, including generated and vendored ones. A live key
+        # committed to `dist/bundle.min.js` is exactly as live as one in source,
+        # and restricting this to reviewable paths let it through untouched.
         "must_flag": [{"path": f["path"], "rule": "L2-SEC-01", "what": w}
-                      for f in files if f["kind"] in ("review", "test")
-                      for w in f["secrets"]],
+                      for f in files for w in f["secrets"]],
+        # For the model to judge, never demanded by the validator.
+        "possible_secrets": [{"path": f["path"], "text": s}
+                             for f in files for s in f["possible_secrets"]],
         "large_diff": total > 2000,
         "total_lines_changed": total,
     }
@@ -235,6 +278,7 @@ def brief(res: dict) -> dict:
             for f in res["files"]],
         "coverage": res["coverage"],
         "must_flag": res["must_flag"],
+        "possible_secrets": res["possible_secrets"],
         "test_expectation": res["test_expectation"],
         "large_diff": res["large_diff"],
     }

@@ -95,7 +95,7 @@ temptation to comment on generated code.
 3. **[rule]** Skip generated, vendored, lockfile and snapshot paths entirely.
 4. **[judgment]** For each changed hunk, ask only: does this violate a **loaded rule**?
 5. **[rule]** **THE CITATION RULE — no finding without a rule ID.** Every finding must
-   name the rule it violates (`L2-SEC-03`). If no loaded rule covers the concern, the
+   name the rule it violates (`L2-SEC-05`). If no loaded rule covers the concern, the
    agent may not raise it. It has no free-floating opinions.
 6. **[rule]** Before raising a finding, check the deviation registry for a path-scoped
    suppression. A suppressed rule is silent — no finding, no warning, no "note that".
@@ -133,7 +133,7 @@ If none of the three tests is satisfiable, it is not a finding. Drop it.
 
 ### [BLOCKER] <one-line summary>
 - **Where:** `path/to/file.cs:142`
-- **Rule:** L2-SEC-03 — Secrets must not be logged
+- **Rule:** L2-SEC-02 — Personal data must not be written to logs
 - **Why it matters:** <concrete consequence, not a restatement of the rule>
 - **Suggested fix:** <specific and actionable>
 
@@ -142,7 +142,7 @@ If none of the three tests is satisfiable, it is not a finding. Drop it.
 - Architectural checks — no L3 context found   ← only in L2-only mode
 
 ## Suppressed by Project Context
-- `L3-ARCH-02` on `/legacy/billing/**` — DEV-004 (accepted, expires 2027-01)
+- `L3-ARCH-01` on `/legacy/billing/**` — DEV-004 (accepted, expires 2027-01)
 
 ## Coverage
 Files changed: 12 · Reviewed: 9 · Skipped: 3 · Findings: 4 (0 BLOCKER, 2 MAJOR, 2 MINOR)

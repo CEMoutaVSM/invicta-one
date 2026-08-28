@@ -27,6 +27,17 @@ if [ "$rc" -ne 0 ]; then
   printf '%s\n' "$out" | grep -E 'FAIL|^\s+!' | sed 's/^/  /'
 fi
 
+echo; echo "=== end-to-end traces ==="
+# The traces in demo/ are the only evidence of an agent working end to end, and
+# they go stale silently: one was committed with a stored verdict of PASS while
+# its artefact actually failed validation. Re-run and re-record every verdict.
+out=$( "$PY" demo/refresh.py 2>&1 ); rc=$?
+printf '%s\n' "$out" | tail -1
+if [ "$rc" -ne 0 ]; then
+  fail=1
+  printf '%s\n' "$out" | grep -E 'FAILS|no longer' | sed 's/^/  /'
+fi
+
 echo; echo "=== auditor regressions ==="
 # Every defect eight independent auditors found, reproduced as a test. The
 # per-agent suites prove the agents work; these prove that a finding which was

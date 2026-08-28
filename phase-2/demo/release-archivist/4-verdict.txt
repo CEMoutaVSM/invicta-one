@@ -1,1 +1,1 @@
-PASS - ledger reconciles, entries present, no internal tokens leaked
+PASS - ledger reconciles against the classifier, every publishable item is present, no internal tokens leaked

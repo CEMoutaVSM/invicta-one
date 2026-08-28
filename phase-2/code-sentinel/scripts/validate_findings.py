@@ -362,7 +362,10 @@ def validate(md: str, ctx: pathlib.Path, today: dt.date,
                     f"(hunks start at {', '.join(str(s) for s in starts)}) - "
                     "cite a line the change actually touched")
 
-        for p in sorted(finding_paths & skipped):
+        # A generated file may not be reviewed, but if a credential was
+        # committed to one the reviewer must be free to say so.
+        demanded = {norm_path(m["path"]) for m in diff.get("must_flag", [])}
+        for p in sorted(finding_paths & skipped - demanded):
             errs.append(f"finding raised on {p}, which the parser marked "
                         "skip (generated/vendored) - it must not be reviewed")
         for p in sorted(finding_paths - reviewable - tests - skipped):
@@ -397,7 +400,7 @@ def main() -> int:
     diff = None
     if a.diff:
         try:
-            diff = json.load(open(a.diff, encoding="utf-8"))
+            diff = json.load(open(a.diff, encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError) as e:
             print(f"usage: cannot read --diff {a.diff}: {e}", file=sys.stderr)
             return 2

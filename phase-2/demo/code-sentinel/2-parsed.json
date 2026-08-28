@@ -16,7 +16,9 @@
         }
       ],
       "new_branches": 1,
-      "removed_branches": 0
+      "removed_branches": 0,
+      "secrets": [],
+      "possible_secrets": []
     },
     {
       "path": "legacy/billing/InvoiceController.cs",
@@ -31,7 +33,9 @@
         }
       ],
       "new_branches": 0,
-      "removed_branches": 0
+      "removed_branches": 0,
+      "secrets": [],
+      "possible_secrets": []
     },
     {
       "path": "src/generated/api-client.ts",
@@ -46,7 +50,9 @@
         }
       ],
       "new_branches": 0,
-      "removed_branches": 0
+      "removed_branches": 0,
+      "secrets": [],
+      "possible_secrets": []
     }
   ],
   "coverage": {
@@ -61,6 +67,8 @@
     "test_files_touched": 0,
     "expectation_met": false
   },
+  "must_flag": [],
+  "possible_secrets": [],
   "large_diff": false,
   "total_lines_changed": 8
 }

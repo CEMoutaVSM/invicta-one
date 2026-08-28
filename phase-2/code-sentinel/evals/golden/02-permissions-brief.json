@@ -48,6 +48,7 @@
     "skipped": 1
   },
   "must_flag": [],
+  "possible_secrets": [],
   "test_expectation": {
     "new_branches": 1,
     "removed_branches": 0,

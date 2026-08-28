@@ -1,16 +1,16 @@
 # Release Notes — Billing, August 2026
 
 ## New
-- **Bulk invoice export** — export a filtered invoice list to CSV.
-- **View-only access for bookkeepers** — bookkeepers can see entries without being able to post them.
+- **Bulk invoice export** — export a filtered invoice list to CSV. <!-- src:1 -->
+- **View-only access for bookkeepers** — bookkeepers can see entries without being able to post them. <!-- src:15 -->
 
 ## Improved
-- **Faster invoice list** — the invoice list now loads in under a second, down from around four seconds.
-- **Currency rounding** — rounding is now consistent on entries that mix currencies.
+- **Faster invoice list** — the invoice list now loads in under a second, down from around four seconds. <!-- src:9 -->
+- **Currency rounding** — rounding is now consistent on entries that mix currencies. <!-- src:11 -->
 
 ## Fixed
-- **Sign-in dropping after idle** — sessions no longer end unexpectedly after a short spell of inactivity.
-- **Security improvements** — hardening in the customer notes field.
+- **Sign-in dropping after idle** — sessions no longer end unexpectedly after a short spell of inactivity. <!-- src:4 -->
+- **Security improvements** — hardening in the customer notes field. <!-- src:13 -->
 
 <!-- INTERNAL — not for publication -->
 ## Internal Changes

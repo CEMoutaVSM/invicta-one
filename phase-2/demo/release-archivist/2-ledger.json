@@ -13,6 +13,7 @@
     "duplicates_merged": 1,
     "duplicates_published": 0,
     "expected_entries": 6,
+    "unclassified": 2,
     "items_accounted": 15,
     "classes_reconcile": true,
     "lines_reconcile": true,
@@ -34,6 +35,20 @@
   ],
   "empty_release": false,
   "furniture": [],
+  "unclassified": [
+    {
+      "line": 11,
+      "text": "handle edge case in currency rounding",
+      "provisional": "IMPROVEMENT",
+      "why": "no rule matched"
+    },
+    {
+      "line": 14,
+      "text": "docs: update README",
+      "provisional": "INTERNAL",
+      "why": "internal engineering work"
+    }
+  ],
   "items": [
     {
       "line": 1,

@@ -304,8 +304,8 @@ def load(context_dir: pathlib.Path, today: dt.date) -> dict:
             + ([] if active else
                ["FATAL: the active rule set is EMPTY. The agent cannot raise "
                 "any finding and must NOT report a verdict. Reviewing with no "
-                "rules produces a clean result for unchecked code. Restore "
-                f"context/ (looked in: {context_dir})."])
+                "rules produces a clean result for unchecked code. Restore the "
+                "context/ directory this agent was pointed at."])
             + ([] if usable or not active else
                ["FATAL: the context parsed with errors. The agent must NOT "
                 "report a verdict until they are resolved."])

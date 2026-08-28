@@ -130,7 +130,7 @@ def context_numerals(context_dir: pathlib.Path | None) -> set[str]:
     if not f.exists():
         return set()
     return set(re.findall(r"\b\d+(?:[.,]\d+)?\b",
-                          f.read_text(encoding="utf-8")))
+                          f.read_text(encoding="utf-8-sig")))
 
 
 def validate(md: str, parsed: dict | None,
@@ -202,17 +202,31 @@ def validate(md: str, parsed: dict | None,
         # Compared on a canonical form. Portuguese speakers write "1,5 seconds"
         # and the story renders it "1.5"; an exact string match called that a
         # fabrication of the speaker's own number.
-        def canon(v: str) -> str:
-            v = v.replace(",", ".")
-            return v.rstrip("0").rstrip(".") if "." in v else v
+        def forms(v: str) -> set[str]:
+            """Every shape the same quantity is written in.
 
-        allowed = {canon(v) for v in
-                   set(parsed.get("numeric_literals", []))
-                   | context_numerals(context_dir)}
+            A comma is a decimal point to a Portuguese speaker and a thousands
+            separator to an English one, so `1,5` and `5,000` need opposite
+            treatment. Both readings are accepted rather than guessed: writing
+            a stated 5000 as `5,000` was being reported as a fabrication.
+            """
+            out = {v}
+            plain = v.replace(",", "")          # 5,000 -> 5000
+            dec = v.replace(",", ".")           # 1,5   -> 1.5
+            for x in (plain, dec):
+                out.add(x)
+                if "." in x:
+                    out.add(x.rstrip("0").rstrip("."))
+            return {y for y in out if y}
+
+        allowed: set[str] = set()
+        for v in (set(parsed.get("numeric_literals", []))
+                  | context_numerals(context_dir)):
+            allowed |= forms(v)
         body = "\n".join(sec.get(s, "") for s in REQUIRED if s in sec)
         body = ORDINAL.sub(" ", body)
-        for n in sorted(set(re.findall(r"\b\d+(?:[.,]\d+)?\b", body))):
-            if canon(n) not in allowed:
+        for n in sorted(set(re.findall(r"\b\d[\d,.]*\d\b|\b\d\b", body))):
+            if not (forms(n) & allowed):
                 errs.append(f"value {n!r} appears in story but not in input "
                             "(possible fabrication)")
     return errs
@@ -234,7 +248,7 @@ def main() -> int:
     parsed = None
     if a.parsed:
         try:
-            parsed = json.load(open(a.parsed, encoding="utf-8"))
+            parsed = json.load(open(a.parsed, encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError) as e:
             print(f"usage: cannot read --parsed {a.parsed}: {e}", file=sys.stderr)
             return 2

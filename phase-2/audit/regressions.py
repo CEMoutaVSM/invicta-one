@@ -481,10 +481,123 @@ def cross_cutting() -> None:
          len(digests) == 1, f"{len(digests)} distinct outputs")
 
 
+def secret_detection() -> None:
+    """`must_flag` must demand only what is certain, and miss nothing obvious.
+
+    This was the weakest thing in the codebase on both sides at once: it raised
+    security demands on comments, placeholders and vault-entry names — forcing
+    an honest reviewer to fabricate a finding in order to pass — while missing
+    real keys split across a concatenation or committed to a generated file.
+    """
+    def diff_for(line: str, path: str = "src/S.cs") -> pathlib.Path:
+        return w(f"sec-{abs(hash(line + path))}.diff",
+                 f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n"
+                 f"@@ -1,2 +1,3 @@\n{line}\n")
+
+    no_demand = {
+        "J-01": ('+ // api_key = "your-key-here"', "an example in a comment"),
+        "J-07": ('+ password = "changeme";', "a placeholder default"),
+        "J-02": ('+ secret = "billing-api-key";', "a vault entry name"),
+    }
+    for tag, (line, what) in no_demand.items():
+        d = json.loads(sh(PD, diff_for(line))[1])
+        case(tag, f"{what} does not demand a security finding",
+             not d["must_flag"], json.dumps(d["must_flag"])[:120])
+
+    must = {
+        "G-20b": ('+ const k = "sk_live_51H8xQ2eZvKYlo2CabcdEF";', "a live key"),
+        "J-08": ('+ const k = "sk_live_51H8x" + "Q2eZvKYlo2C";',
+                 "a key split across a concatenation"),
+    }
+    for tag, (line, what) in must.items():
+        d = json.loads(sh(PD, diff_for(line))[1])
+        case(tag, f"{what} is demanded", bool(d["must_flag"]),
+             json.dumps(d["must_flag"])[:120])
+
+    d = json.loads(sh(PD, diff_for('+ const k = "sk_live_51H8xQ2eZvKYlo2CabcdEF";',
+                                   "dist/bundle.min.js"))[1])
+    case("J-09", "a live key in a generated file is still demanded",
+         bool(d["must_flag"]), json.dumps(d["must_flag"])[:120])
+
+    # pytest naming must count as a test, or an honest review is rejected for
+    # missing a defect that does not exist
+    _, out = sh(PD, w("pytest.diff",
+                      "diff --git a/src/calc.py b/src/calc.py\n"
+                      "--- a/src/calc.py\n+++ b/src/calc.py\n@@ -1,2 +1,3 @@\n"
+                      "+    if total > 0:\n"
+                      "diff --git a/test_calc.py b/test_calc.py\n"
+                      "--- a/test_calc.py\n+++ b/test_calc.py\n@@ -1,2 +1,3 @@\n"
+                      "+    assert calc(1) == 1\n"))
+    d = json.loads(out)
+    case("J-03", "pytest's test_*.py naming counts as a test file",
+         d["test_expectation"]["test_files_touched"] == 1
+         and d["test_expectation"]["expectation_met"],
+         json.dumps(d["test_expectation"]))
+
+    # the NO-CONTEXT refusal must not embed a path, or its digest never repeats
+    a = TMP / "nc-a"
+    b = TMP / "nc-bbbbbbbbbbbb"
+    a.mkdir(exist_ok=True)
+    b.mkdir(exist_ok=True)
+    _, o1 = sh(LR, "--context", a, "--today", TODAY)
+    _, o2 = sh(LR, "--context", b, "--today", TODAY)
+    case("K-06", "the NO-CONTEXT refusal is byte-identical whatever the path",
+         o1 == o2, "differs by context directory")
+
+
+def false_positives() -> None:
+    """Correct work that earlier versions rejected."""
+    w("k4.txt", "as an accountant I want the export to handle 5000 rows in 30 "
+                "seconds so that month end is quick\n")
+    _, p = sh(JSP, TMP / "k4.txt")
+    story = ("## Export large invoice lists\n\n### Context\nMonth end needs speed.\n\n"
+             "### User Story\nAs an accountant, I want the export to handle large "
+             "lists, so that month end is quick.\n\n### Acceptance Criteria\n"
+             "1. **Given** a list of 5,000 rows **When** I export **Then** it "
+             "completes within 30 seconds.\n\n### Technical Hints\n- Stream it.\n\n"
+             "### Out of Scope\n- Scheduled exports.\n\n### Open Questions\n"
+             "- [ ] None.\n\n### Readiness\nREADY\n")
+    c, o = sh(JSV, w("k4.md", story), "--parsed", w("k4.json", p))
+    case("J-04", "a stated 5000 written as '5,000' is not a fabrication", c == 0,
+         o.strip()[:150])
+
+    notes = (RA / "evals/inputs/valid-notes.md").read_text(encoding="utf-8")
+    _, lout = sh(RAC, RA / "evals/inputs/03-sprint42.log", "--json")
+    sla = notes.replace("hardening in the customer notes field.",
+                        "hardening in the customer notes field, meeting our "
+                        "SLA-95 target for US-2026.")
+    c, o = sh(RAV, w("sla.md", sla), "--ledger", w("led2.json", lout))
+    case("J-05", "'SLA-95' and 'US-2026' are not leaked ticket keys", c == 0,
+         o.strip()[:150])
+
+    # ... while the release's real ticket keys still are
+    leaky = notes.replace("export a filtered invoice list to CSV.",
+                          "export a filtered invoice list to CSV (PROJ-2811).")
+    c, o = sh(RAV, w("leaky.md", leaky), "--ledger", w("led3.json", lout))
+    case("J-05b", "a ticket key from this release IS caught",
+         c == 1 and "PROJ-2811" in o, o.strip()[:150])
+
+
+def ledger_honesty() -> None:
+    """Without the classifier ledger the guarantee is not checkable, and the
+    tool must not claim otherwise. It printed `PASS - ledger reconciles` over
+    notes that had dropped five features."""
+    c, o = sh(RAV, RA / "evals/inputs/valid-notes.md")
+    case("J-10", "without --ledger the tool says what it did NOT check",
+         c == 0 and "NOT CHECKED" in o and "ledger reconciles" not in o,
+         o.strip()[:200])
+    _, lout = sh(RAC, RA / "evals/inputs/03-sprint42.log", "--json")
+    c, o = sh(RAV, RA / "evals/inputs/valid-notes.md",
+              "--ledger", w("led4.json", lout))
+    case("J-10b", "with --ledger it says the guarantee was actually checked",
+         c == 0 and "against the classifier" in o, o.strip()[:200])
+
+
 def main() -> int:
     for fn in (sentinel_shapes, sentinel_precision, sentinel_recall,
-               sentinel_parsing, sentinel_context, archivist_zero_loss,
-               archivist_leaks, archivist_classify, scribe, cross_cutting):
+               sentinel_parsing, sentinel_context, secret_detection,
+               archivist_zero_loss, archivist_leaks, archivist_classify,
+               false_positives, ledger_honesty, scribe, cross_cutting):
         fn()
 
     verbose = "-v" in sys.argv

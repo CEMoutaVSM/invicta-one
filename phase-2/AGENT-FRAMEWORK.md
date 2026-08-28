@@ -73,7 +73,10 @@ Two files this tree used to list do not exist and should not:
 
 ### SKILL.md skeleton
 
-Every agent uses the same nine sections, in the same order:
+Every agent uses the same skeleton, in the same order. Sections 1-10 below
+are common to all three; an agent adds numbered sections after them when it
+has more to say (the Sentinel has a severity taxonomy and a calibration
+pointer, for instance). The Eval Log is always last:
 
 ```markdown
 ---
@@ -86,7 +89,30 @@ description: <what it does AND when to trigger — be explicit, agents under-tri
 ## 3. Input contract    Accepted formats, tolerated mess, rejected input
 ## 4. Context loading   Which L2/L3 files to read before reasoning — mandatory step
 ## 5. Operating rules   Numbered, deterministic. Which step is script, which is judgment
-## 6. Output contract   Exact schema. Fixed sections, fixed order, closed enums
+## 6. The Eval Log
+
+Every `SKILL.md` ends with one, and it is generated from the runner rather than
+written, so it cannot describe a case the suite does not run. That mattered: an
+earlier hand-maintained table claimed three inputs for an agent that shipped two.
+
+Each row records one case and what it asserts:
+
+| # | Case | Runs | Output digest | Golden-gated | Result |
+|---|---|---|---|---|---|
+
+Three assertions per case — the expected exit code, byte-identical output across
+three runs, and, where a golden file exists, an exact match on the recorded
+decisions. Only the third can fail on a logic change; the first two are close to
+tautological on a pure function of a fixed file.
+
+**The digests cover the scripts, not the model.** No suite in this repository
+invokes an LLM, so nothing here evidences the quality of what the model writes —
+only that everything around it is reproducible. `demo/` holds one end-to-end
+trace per agent for the rest.
+
+Below the table, each agent summarises the defects found against it and links to
+`references/eval-deltas.md` for the full list.
+
 ## 7. Constraints       Negative prompting: what it must never do
 ## 8. Failure mode      What it emits when input is insufficient. Never a guess
 ## 9. Self-check        Verify own output against §6 before returning
@@ -125,7 +151,7 @@ This single constraint eliminates most false positives, because it forbids the a
 ### DEV-004 — Direct repository access from controllers in `/legacy/billing`
 Status: accepted | Owner: @tech-lead | Reviewed: 2026-Q3
 Rationale: Pre-dates the service layer. Migration tracked in PROJ-2841.
-Agent behaviour: do not flag L3-ARCH-02 for paths under /legacy/billing.
+Agent behaviour: do not flag L3-ARCH-01 for paths under /legacy/billing.
 Expires: 2027-01 (re-evaluate)
 ```
 
@@ -205,7 +231,7 @@ Coverage is how the Archivist proves "zero missing features": every input line i
 ```
 for each agent:
   for each of 3 inputs:
-    run 3 times, fresh context each time
+    run 3 times and the output compared byte for byte
     diff structure  → must be identical
     diff decisions  → log any delta with an explanation
     validate output against the schema validator
@@ -227,7 +253,7 @@ Appended to the bottom of each `SKILL.md` at submission:
 ```markdown
 ## Eval Log
 
-Corpus: 3 anonymised real inputs. 3 runs each, fresh context. Date: 2026-08-06.
+Corpus: anonymised real inputs. 3 runs each, output compared byte for byte.
 
 | # | Input | Runs | Structural variance | Decision variance | Coverage | Verdict |
 |---|-------|------|--------------------|--------------------|----------|---------|

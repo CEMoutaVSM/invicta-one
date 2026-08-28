@@ -17,6 +17,13 @@
       "skip_reason": null
     }
   },
+  "must_flag": [
+    {
+      "path": "src/config/Secrets.cs",
+      "rule": "L2-SEC-01",
+      "what": "production secret key"
+    }
+  ],
   "test_expectation": {
     "new_branches": 1,
     "removed_branches": 0,

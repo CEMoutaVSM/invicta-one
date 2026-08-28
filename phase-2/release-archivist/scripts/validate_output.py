@@ -69,11 +69,13 @@ STRUCTURAL_LEAKS = [
     (re.compile(r"\b(?=[0-9a-f]{7,40}\b)[0-9a-f]*\d[0-9a-f]*\b"), "commit hash"),
     # A ticket key has a letters-only prefix and at least two digits, and is not
     # a standards identifier.
-    # Standards and public identifiers are not ticket keys. COVID-19 in a
-    # release note is a date-shaped fact about the world, not a leak.
-    (re.compile(r"\b(?!(?:UTF|ISO|RFC|SHA|AES|TLS|SSL|PCI|IEC|ANSI|EN|IEEE|"
-                r"COVID|SARS|IPv|MP|SHA1|SHA256|OAuth|SAF|GDPR|PSD|EU)-)"
-                r"[A-Z]{2,10}-\d{2,}\b"), "ticket key"),
+    # Deliberately narrow. Anything letters-dash-digits is also how people
+    # write SLA-95, US-2026, COVID-19 and half the standards in existence, and
+    # rejecting those made correct release notes fail. When a classifier ledger
+    # is supplied, the real ticket keys are read from it instead of guessed —
+    # see `ticket_keys_from_ledger`, which is exact rather than shaped.
+    (re.compile(r"\b(?:PROJ|JIRA|TICKET|ISSUE|BUG|TASK|STORY|EPIC)-\d{2,}\b"),
+     "ticket key"),
     # A branch slug carries a separator or a digit: `feature/bulk-export`, not
     # the phrase "feature/report card".
     (re.compile(r"\b(feature|bugfix|hotfix|release)/(?=[\w.-]*[-_.\d])[\w.-]+"),
@@ -159,6 +161,22 @@ def mask_fences(text: str) -> str:
             if s.startswith(fence):
                 fence = None
     return "\n".join(out)
+
+
+def ticket_keys_from_ledger(ledger: dict | None) -> list[str]:
+    """The ticket keys this release actually touched.
+
+    Pattern-matching for anything ticket-shaped cannot tell PROJ-2811 from
+    SLA-95. The classifier already extracted every key in the input, so when a
+    ledger is available the check becomes exact: these specific keys must not
+    appear in customer-facing text.
+    """
+    if not ledger:
+        return []
+    keys: set[str] = set()
+    for item in ledger.get("items", []):
+        keys.update(item.get("tickets", []))
+    return sorted(keys)
 
 
 def customer_section(md: str) -> str:
@@ -369,6 +387,10 @@ def validate(md: str, ledger: dict | None,
                         "in the customer-facing sections")
 
     body = customer_section(md)
+    for key in ticket_keys_from_ledger(ledger):
+        if re.search(rf"\b{re.escape(key)}\b", body):
+            errs.append(f"ticket key leaked into customer-facing text: {key!r} "
+                        "(it appears in the input log)")
     for pat, label in STRUCTURAL_LEAKS:
         for hit in sorted({h if isinstance(h, str) else h[0]
                            for h in pat.findall(body)}):
@@ -405,7 +427,7 @@ def main() -> int:
     ledger = None
     if a.ledger:
         try:
-            ledger = json.load(open(a.ledger, encoding="utf-8"))
+            ledger = json.load(open(a.ledger, encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError) as e:
             print(f"usage: cannot read --ledger {a.ledger}: {e}", file=sys.stderr)
             return 2
@@ -419,7 +441,17 @@ def main() -> int:
         return 1
     for e in errs:
         print(f"  - {e}")
-    print("PASS - ledger reconciles, entries present, no internal tokens leaked")
+    # Without the classifier's ledger this cannot check what was published
+    # against what was classified — it can only read the numbers the notes
+    # assert about themselves. Saying "ledger reconciles" there was a false
+    # reassurance: notes hiding five features printed it and exited 0.
+    if ledger:
+        print("PASS - ledger reconciles against the classifier, every "
+              "publishable item is present, no internal tokens leaked")
+    else:
+        print("PASS - self-consistent and no internal tokens leaked. "
+              "NOT CHECKED: whether anything was dropped. Re-run with "
+              "--ledger <classify.py --json> to verify the zero-loss guarantee.")
     return 0
 
 

@@ -22,7 +22,9 @@
   "reversals": [],
   "actor_source": "L3-glossary",
   "stated_values": [],
-  "numeric_literals": [],
+  "numeric_literals": [
+    "1"
+  ],
   "segments": [
     "ok so the accountants keep asking for this one - they want to get the invoice list out into excel, whatever they've filtered on screen.",
     "right now they retype the whole thing by hand which is mad tbh.",

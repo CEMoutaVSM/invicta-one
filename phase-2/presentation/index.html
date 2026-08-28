@@ -1084,8 +1084,8 @@ For src/onboarding/Saga.cs: no suppressions
     <p class="lede">Eight independent auditors across three rounds, each with a clean context, blind to the others and forbidden from reading our own notes on what we thought we had built. They were told to break it.</p>
   </div>
   <div class="grid3">
-    <div class="card accent" style="--c:var(--amber)"><div class="stat" style="color:var(--amber)">81</div><div class="stat-l">defects found and fixed &mdash; 11 by us, 70 by the auditors</div></div>
-    <div class="card accent" style="--c:var(--sky)"><div class="stat" style="color:var(--sky)">36</div><div class="stat-l">automated test cases, gated against expected decisions</div></div>
+    <div class="card accent" style="--c:var(--amber)"><div class="stat" style="color:var(--amber)">31</div><div class="stat-l">defects recorded against the agents &mdash; 11 by us, the rest by eight auditors</div></div>
+    <div class="card accent" style="--c:var(--sky)"><div class="stat" style="color:var(--sky)">36</div><div class="stat-l">eval cases, 12 gated against expected decisions</div></div>
     <div class="card accent" style="--c:var(--gold)"><div class="stat" style="color:var(--gold)">47</div><div class="stat-l">compliance checks, each written so it can actually fail</div></div>
     <div class="card accent" style="--c:var(--taco-green-300)"><div class="stat" style="color:var(--taco-green-300)">0</div><div class="stat-l">dependencies &mdash; Python standard library only</div></div>
   </div>
@@ -1107,7 +1107,7 @@ For src/onboarding/Saga.cs: no suppressions
       </ul>
     </div>
   </div>
-  <p style="font-weight:700">Publishing that list is the point. A tool nobody has attacked is a tool nobody has tested. Every one of the 81 is now a permanent test case.</p>
+  <p style="font-weight:700">Publishing that list is the point. A tool nobody has attacked is a tool nobody has tested. Every one is now a permanent test case: <code>audit/regressions.py</code> holds 74 checks, each tagged with the auditor and finding it came from.</p>
 
   <div class="card">
     <h4>Checked against someone else&rsquo;s standard, too</h4>
@@ -1837,7 +1837,7 @@ def main() -&gt; int:
 
 if __name__ == "__main__":
     sys.exit(main())
-</code></pre></details><details class="filed"><summary><span class="fn">validate_output.py</span><span class="fd">Contract validator for the Release Archivist.</span><span class="fl">432 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">validate_output.py</span><span class="fd">Contract validator for the Release Archivist.</span><span class="fl">464 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Contract validator for the Release Archivist.
 
 Three things the model is not trusted on: the coverage ledger reconciling,
@@ -1908,11 +1908,13 @@ STRUCTURAL_LEAKS = [
     (re.compile(r"\b(?=[0-9a-f]{7,40}\b)[0-9a-f]*\d[0-9a-f]*\b"), "commit hash"),
     # A ticket key has a letters-only prefix and at least two digits, and is not
     # a standards identifier.
-    # Standards and public identifiers are not ticket keys. COVID-19 in a
-    # release note is a date-shaped fact about the world, not a leak.
-    (re.compile(r"\b(?!(?:UTF|ISO|RFC|SHA|AES|TLS|SSL|PCI|IEC|ANSI|EN|IEEE|"
-                r"COVID|SARS|IPv|MP|SHA1|SHA256|OAuth|SAF|GDPR|PSD|EU)-)"
-                r"[A-Z]{2,10}-\d{2,}\b"), "ticket key"),
+    # Deliberately narrow. Anything letters-dash-digits is also how people
+    # write SLA-95, US-2026, COVID-19 and half the standards in existence, and
+    # rejecting those made correct release notes fail. When a classifier ledger
+    # is supplied, the real ticket keys are read from it instead of guessed —
+    # see `ticket_keys_from_ledger`, which is exact rather than shaped.
+    (re.compile(r"\b(?:PROJ|JIRA|TICKET|ISSUE|BUG|TASK|STORY|EPIC)-\d{2,}\b"),
+     "ticket key"),
     # A branch slug carries a separator or a digit: `feature/bulk-export`, not
     # the phrase "feature/report card".
     (re.compile(r"\b(feature|bugfix|hotfix|release)/(?=[\w.-]*[-_.\d])[\w.-]+"),
@@ -1998,6 +2000,22 @@ def mask_fences(text: str) -&gt; str:
             if s.startswith(fence):
                 fence = None
     return "\n".join(out)
+
+
+def ticket_keys_from_ledger(ledger: dict | None) -&gt; list[str]:
+    """The ticket keys this release actually touched.
+
+    Pattern-matching for anything ticket-shaped cannot tell PROJ-2811 from
+    SLA-95. The classifier already extracted every key in the input, so when a
+    ledger is available the check becomes exact: these specific keys must not
+    appear in customer-facing text.
+    """
+    if not ledger:
+        return []
+    keys: set[str] = set()
+    for item in ledger.get("items", []):
+        keys.update(item.get("tickets", []))
+    return sorted(keys)
 
 
 def customer_section(md: str) -&gt; str:
@@ -2208,6 +2226,10 @@ def validate(md: str, ledger: dict | None,
                         "in the customer-facing sections")
 
     body = customer_section(md)
+    for key in ticket_keys_from_ledger(ledger):
+        if re.search(rf"\b{re.escape(key)}\b", body):
+            errs.append(f"ticket key leaked into customer-facing text: {key!r} "
+                        "(it appears in the input log)")
     for pat, label in STRUCTURAL_LEAKS:
         for hit in sorted({h if isinstance(h, str) else h[0]
                            for h in pat.findall(body)}):
@@ -2244,7 +2266,7 @@ def main() -&gt; int:
     ledger = None
     if a.ledger:
         try:
-            ledger = json.load(open(a.ledger, encoding="utf-8"))
+            ledger = json.load(open(a.ledger, encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError) as e:
             print(f"usage: cannot read --ledger {a.ledger}: {e}", file=sys.stderr)
             return 2
@@ -2258,7 +2280,17 @@ def main() -&gt; int:
         return 1
     for e in errs:
         print(f"  - {e}")
-    print("PASS - ledger reconciles, entries present, no internal tokens leaked")
+    # Without the classifier's ledger this cannot check what was published
+    # against what was classified — it can only read the numbers the notes
+    # assert about themselves. Saying "ledger reconciles" there was a false
+    # reassurance: notes hiding five features printed it and exited 0.
+    if ledger:
+        print("PASS - ledger reconciles against the classifier, every "
+              "publishable item is present, no internal tokens leaked")
+    else:
+        print("PASS - self-consistent and no internal tokens leaked. "
+              "NOT CHECKED: whether anything was dropped. Re-run with "
+              "--ledger &lt;classify.py --json&gt; to verify the zero-loss guarantee.")
     return 0
 
 
@@ -2307,9 +2339,9 @@ if __name__ == "__main__":
   ok    classify.py &lt;- 03-sprint42.log --brief  [475296f6 x3] [golden ok]
   ok    validate_output.py &lt;- adversarial-missing-feature.md (+ledger)  [65baaa01 x3]
   ok    validate_output.py &lt;- adversarial-undelegated-move.md (+ledger)  [c7c7b848 x3]
-  ok    validate_output.py &lt;- valid-delegated.md (+ledger)  [74c08f80 x3]
-  ok    validate_output.py &lt;- valid-notes.md (+ledger)  [74c08f80 x3]
-  ok    validate_output.py &lt;- valid-refusal.md  [74c08f80 x3]
+  ok    validate_output.py &lt;- valid-delegated.md (+ledger)  [7e5c857c x3]
+  ok    validate_output.py &lt;- valid-notes.md (+ledger)  [7e5c857c x3]
+  ok    validate_output.py &lt;- valid-refusal.md  [b090395d x3]
   ok    validate_output.py &lt;- adversarial-leaky-notes.md  [10b10c51 x3]
   ok    validate_output.py &lt;- adversarial-missing-feature.md  [9709183a x3]
   ok    validate_output.py &lt;- adversarial-leak-only.md  [25ba3b6d x3]
@@ -2841,7 +2873,7 @@ def main() -&gt; int:
 
 if __name__ == "__main__":
     sys.exit(main())
-</code></pre></details><details class="filed"><summary><span class="fn">validate_output.py</span><span class="fd">Contract validator for the Jira Scribe.</span><span class="fl">258 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">validate_output.py</span><span class="fd">Contract validator for the Jira Scribe.</span><span class="fl">272 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Contract validator for the Jira Scribe.
 
 The agent is not trusted to have followed its own output contract.
@@ -2973,7 +3005,7 @@ def context_numerals(context_dir: pathlib.Path | None) -&gt; set[str]:
     if not f.exists():
         return set()
     return set(re.findall(r"\b\d+(?:[.,]\d+)?\b",
-                          f.read_text(encoding="utf-8")))
+                          f.read_text(encoding="utf-8-sig")))
 
 
 def validate(md: str, parsed: dict | None,
@@ -3045,17 +3077,31 @@ def validate(md: str, parsed: dict | None,
         # Compared on a canonical form. Portuguese speakers write "1,5 seconds"
         # and the story renders it "1.5"; an exact string match called that a
         # fabrication of the speaker's own number.
-        def canon(v: str) -&gt; str:
-            v = v.replace(",", ".")
-            return v.rstrip("0").rstrip(".") if "." in v else v
+        def forms(v: str) -&gt; set[str]:
+            """Every shape the same quantity is written in.
 
-        allowed = {canon(v) for v in
-                   set(parsed.get("numeric_literals", []))
-                   | context_numerals(context_dir)}
+            A comma is a decimal point to a Portuguese speaker and a thousands
+            separator to an English one, so `1,5` and `5,000` need opposite
+            treatment. Both readings are accepted rather than guessed: writing
+            a stated 5000 as `5,000` was being reported as a fabrication.
+            """
+            out = {v}
+            plain = v.replace(",", "")          # 5,000 -&gt; 5000
+            dec = v.replace(",", ".")           # 1,5   -&gt; 1.5
+            for x in (plain, dec):
+                out.add(x)
+                if "." in x:
+                    out.add(x.rstrip("0").rstrip("."))
+            return {y for y in out if y}
+
+        allowed: set[str] = set()
+        for v in (set(parsed.get("numeric_literals", []))
+                  | context_numerals(context_dir)):
+            allowed |= forms(v)
         body = "\n".join(sec.get(s, "") for s in REQUIRED if s in sec)
         body = ORDINAL.sub(" ", body)
-        for n in sorted(set(re.findall(r"\b\d+(?:[.,]\d+)?\b", body))):
-            if canon(n) not in allowed:
+        for n in sorted(set(re.findall(r"\b\d[\d,.]*\d\b|\b\d\b", body))):
+            if not (forms(n) &amp; allowed):
                 errs.append(f"value {n!r} appears in story but not in input "
                             "(possible fabrication)")
     return errs
@@ -3077,7 +3123,7 @@ def main() -&gt; int:
     parsed = None
     if a.parsed:
         try:
-            parsed = json.load(open(a.parsed, encoding="utf-8"))
+            parsed = json.load(open(a.parsed, encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError) as e:
             print(f"usage: cannot read --parsed {a.parsed}: {e}", file=sys.stderr)
             return 2
@@ -3169,7 +3215,7 @@ if __name__ == "__main__":
 <p><strong>The citation rule binds you, not the script.</strong> You may not raise a finding you cannot attach to a loaded rule ID. <code>validate_findings.py</code> rejects the review otherwise, and with <code>--diff</code> it also rejects a review that <em>missed</em> an untested branch the parser had already proved.</p>
 <p><strong>Ask for <code>--brief</code>.</strong> <code>python scripts/parse_diff.py &lt;diff&gt; --brief</code> collapses the files you are forbidden to review down to a count and a reason, and keeps the surface you are allowed to touch. About <strong>17% smaller</strong>, and it removes the temptation to comment on generated code.</p>
 <h4>5. Operating rules</h4>
-<ol><li><strong>[script]</strong> <code>parse_diff.py</code> → files, hunks, added/removed lines, generated-file flags.</li><li><strong>[script]</strong> <code>load_rules.py</code> → active rules from L2 + ratified L3, minus deviations.</li><li><strong>[rule]</strong> Skip generated, vendored, lockfile and snapshot paths entirely.</li><li><strong>[judgment]</strong> For each changed hunk, ask only: does this violate a <strong>loaded rule</strong>?</li><li><strong>[rule]</strong> <strong>THE CITATION RULE — no finding without a rule ID.</strong> Every finding must name the rule it violates (<code>L2-SEC-03</code>). If no loaded rule covers the concern, the agent may not raise it. It has no free-floating opinions.</li><li><strong>[rule]</strong> Before raising a finding, check the deviation registry for a path-scoped suppression. A suppressed rule is silent — no finding, no warning, no "note that".</li><li><strong>[judgment]</strong> Test coverage: for each new conditional branch or error path in non-generated code, check whether the diff adds a corresponding test. Missing → MAJOR.</li><li><strong>[judgment]</strong> Assign severity strictly (see §6). Inflation destroys the signal.</li><li><strong>[rule]</strong> Cap at 10 findings, ranked by severity then blast radius. If more were found, say so — do not silently truncate.</li><li><strong>[rule]</strong> Zero findings is a valid, expected outcome. Say so plainly. <strong>Never manufacture a concern to look useful.</strong></li><li><strong>[script]</strong> <code>validate_findings.py</code> — rejects uncited findings, bad severities and findings on suppressed paths.</li></ol>
+<ol><li><strong>[script]</strong> <code>parse_diff.py</code> → files, hunks, added/removed lines, generated-file flags.</li><li><strong>[script]</strong> <code>load_rules.py</code> → active rules from L2 + ratified L3, minus deviations.</li><li><strong>[rule]</strong> Skip generated, vendored, lockfile and snapshot paths entirely.</li><li><strong>[judgment]</strong> For each changed hunk, ask only: does this violate a <strong>loaded rule</strong>?</li><li><strong>[rule]</strong> <strong>THE CITATION RULE — no finding without a rule ID.</strong> Every finding must name the rule it violates (<code>L2-SEC-05</code>). If no loaded rule covers the concern, the agent may not raise it. It has no free-floating opinions.</li><li><strong>[rule]</strong> Before raising a finding, check the deviation registry for a path-scoped suppression. A suppressed rule is silent — no finding, no warning, no "note that".</li><li><strong>[judgment]</strong> Test coverage: for each new conditional branch or error path in non-generated code, check whether the diff adds a corresponding test. Missing → MAJOR.</li><li><strong>[judgment]</strong> Assign severity strictly (see §6). Inflation destroys the signal.</li><li><strong>[rule]</strong> Cap at 10 findings, ranked by severity then blast radius. If more were found, say so — do not silently truncate.</li><li><strong>[rule]</strong> Zero findings is a valid, expected outcome. Say so plainly. <strong>Never manufacture a concern to look useful.</strong></li><li><strong>[script]</strong> <code>validate_findings.py</code> — rejects uncited findings, bad severities and findings on suppressed paths.</li></ol>
 <h4>6. Severity taxonomy</h4>
 <p>Closed enum. Definitions are deliberately narrow.</p>
 <div class="tw"><table><thead><tr><th>Severity</th><th>Meaning</th><th>Test</th></tr></thead><tbody><tr><td><strong>BLOCKER</strong></td><td>Will cause data loss, a security breach, or a production outage</td><td>Would you page someone at 3am for it?</td></tr><tr><td><strong>MAJOR</strong></td><td>Logic defect, missing test on a new branch, or architectural violation</td><td>Will this cost more to fix after merge?</td></tr><tr><td><strong>MINOR</strong></td><td>Maintainability concern with a concrete cost</td><td>Can you name who pays, and when?</td></tr></tbody></table></div>
@@ -3184,7 +3230,7 @@ if __name__ == "__main__":
 
 ### [BLOCKER] &lt;one-line summary&gt;
 - **Where:** `path/to/file.cs:142`
-- **Rule:** L2-SEC-03 — Secrets must not be logged
+- **Rule:** L2-SEC-02 — Personal data must not be written to logs
 - **Why it matters:** &lt;concrete consequence, not a restatement of the rule&gt;
 - **Suggested fix:** &lt;specific and actionable&gt;
 
@@ -3193,7 +3239,7 @@ if __name__ == "__main__":
 - Architectural checks — no L3 context found   ← only in L2-only mode
 
 ## Suppressed by Project Context
-- `L3-ARCH-02` on `/legacy/billing/**` — DEV-004 (accepted, expires 2027-01)
+- `L3-ARCH-01` on `/legacy/billing/**` — DEV-004 (accepted, expires 2027-01)
 
 ## Coverage
 Files changed: 12 · Reviewed: 9 · Skipped: 3 · Findings: 4 (0 BLOCKER, 2 MAJOR, 2 MINOR)</code></pre>
@@ -3663,8 +3709,8 @@ def load(context_dir: pathlib.Path, today: dt.date) -&gt; dict:
             + ([] if active else
                ["FATAL: the active rule set is EMPTY. The agent cannot raise "
                 "any finding and must NOT report a verdict. Reviewing with no "
-                "rules produces a clean result for unchecked code. Restore "
-                f"context/ (looked in: {context_dir})."])
+                "rules produces a clean result for unchecked code. Restore the "
+                "context/ directory this agent was pointed at."])
             + ([] if usable or not active else
                ["FATAL: the context parsed with errors. The agent must NOT "
                 "report a verdict until they are resolved."])
@@ -3765,7 +3811,7 @@ if __name__ == "__main__":
         sys.exit(0)
     except KeyboardInterrupt:
         sys.exit(130)
-</code></pre></details><details class="filed"><summary><span class="fn">parse_diff.py</span><span class="fd">Deterministic unified-diff parser for the Code Sentinel.</span><span class="fl">275 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">parse_diff.py</span><span class="fd">Deterministic unified-diff parser for the Code Sentinel.</span><span class="fl">319 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Deterministic unified-diff parser for the Code Sentinel.
 
 Segments a diff into files and hunks, classifies each file, and flags
@@ -3810,23 +3856,50 @@ SKIP = [
     (re.compile(r"(^|/)migrations?/.*\.(sql|Designer\.cs)$"), "migration artefact"),
     (re.compile(r"\.(png|jpg|jpeg|gif|svg|ico|woff2?|ttf|pdf)$"), "binary asset"),
 ]
+# `test_calc.py` is pytest's default naming and was classified reviewable, so a
+# diff that added a branch *and its test* was still reported as untested and the
+# review was rejected for missing a defect that did not exist.
 TEST_PAT = re.compile(r"(^|/)(tests?|spec|__tests__)/|"
-                      r"\.(test|spec)\.[jt]sx?$|Tests?\.cs$|_test\.py$", re.I)
+                      r"\.(test|spec)\.[jt]sx?$|Tests?\.cs$|"
+                      r"(^|/)test_[\w.-]+\.py$|_test\.(py|go|rb)$|"
+                      r"_spec\.rb$|Test\.java$|Spec\.scala$", re.I)
 
 # High-confidence secrets. These need no judgement at all, and the recall check
 # used to hinge only on new branches — so a diff that added a live key while
 # touching no control flow triggered nothing, and an APPROVE sailed through.
 # A test file counts: a production credential in a test is still a production
 # credential.
+# Only vendor-issued token formats. Each is unambiguous: nothing but a real
+# credential looks like this, so demanding a finding cannot be wrong.
+#
+# A broader `password = "..."` rule was here and had to go. It fired on
+# `// api_key = "your-key-here"` in a comment, on `password = "changeme"`, and
+# on `secret = "billing-api-key"` naming a vault entry. The reviewer then could
+# not pass without raising a finding about something that was not a defect —
+# an agent that forces you to fabricate is worse than one that stays quiet.
+# Anything requiring judgement now lands in `possible_secrets`, which the model
+# is asked to look at and the validator does not demand.
 SECRET_PAT = [
-    (re.compile(r"\bsk_live_[A-Za-z0-9]{8,}"), "Stripe live secret key"),
+    (re.compile(r"\bsk_live_[A-Za-z0-9]{12,}"), "Stripe live secret key"),
     (re.compile(r"\b(?:ghp|gho|ghs|github_pat)_[A-Za-z0-9_]{20,}"), "GitHub token"),
-    (re.compile(r"\bAKIA[0-9A-Z]{12,}"), "AWS access key id"),
+    (re.compile(r"\bAKIA[0-9A-Z]{16}"), "AWS access key id"),
+    (re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}"), "Slack token"),
+    (re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"), "private key"),
     (re.compile(r"\bprod-sk-[A-Za-z0-9]{6,}"), "production secret key"),
-    (re.compile(r"(?i)\b(password|passwd|pwd|secret|api[_-]?key|conn(?:ection)?"
-                r"[_-]?string)\b\s*[:=]\s*[\"'][^\"'\s]{6,}[\"']"),
-     "hardcoded credential"),
 ]
+
+# Worth a human's eye, never a demand. Placeholders are excluded so the model is
+# not sent to look at `changeme`.
+MAYBE_SECRET = re.compile(
+    r"(?i)\b(password|passwd|pwd|secret|api[_-]?key|token|conn(?:ection)?"
+    r"[_-]?string)\b\s*[:=]\s*[\"'][^\"'\s]{6,}[\"']")
+PLACEHOLDER = re.compile(
+    r"(?i)your[-_ ]?(key|secret|token)|changeme|placeholder|example|dummy|sample|"
+    r"redacted|xxx+|\.\.\.|&lt;[^&gt;]+&gt;|\$\{|%s|\{\{|TODO|FIXME|test[-_]?key|"
+    r"fake|not[-_]?a[-_]?real")
+# A token split across a concatenation still ships a credential.
+SPLIT_SECRET = re.compile(r"[\"'](?:sk_live_|ghp_|AKIA|prod-sk-|xox[baprs]-)"
+                          r"[A-Za-z0-9_-]*[\"']\s*[+.,]\s*[\"']")
 
 # Conditional branches touched by the diff. Both directions matter: adding a
 # branch needs a test, and *removing* one (a deleted guard) changes control
@@ -3877,7 +3950,8 @@ def parse(text: str) -&gt; dict:
         kind, reason = classify(path)
         cur = {"path": path, "kind": kind, "skip_reason": reason,
                "added": 0, "removed": 0, "hunks": [],
-               "new_branches": 0, "removed_branches": 0, "secrets": []}
+               "new_branches": 0, "removed_branches": 0,
+               "secrets": [], "possible_secrets": []}
         files.append(cur)
 
     lines = text.splitlines()
@@ -3919,9 +3993,19 @@ def parse(text: str) -&gt; dict:
             cur["added"] += 1
             if is_branch(line):
                 cur["new_branches"] += 1
+            # Comments are stripped first: an example credential written in a
+            # comment is documentation, not a leak, and demanding a finding for
+            # it made an honest review impossible to write.
+            code = COMMENT.sub("", line[1:])
             for pat, what in SECRET_PAT:
-                if pat.search(line[1:]) and what not in cur["secrets"]:
+                if pat.search(code) and what not in cur["secrets"]:
                     cur["secrets"].append(what)
+            if SPLIT_SECRET.search(code) and "split credential" not in cur["secrets"]:
+                cur["secrets"].append("split credential")
+            if MAYBE_SECRET.search(code) and not PLACEHOLDER.search(code):
+                snippet = MAYBE_SECRET.search(code).group(0).strip()[:60]
+                if snippet not in cur["possible_secrets"]:
+                    cur["possible_secrets"].append(snippet)
         elif line.startswith("-"):
             cur["removed"] += 1
             if is_branch(line):
@@ -3964,9 +4048,14 @@ def parse(text: str) -&gt; dict:
         },
         # Defects the parser is certain about, so the review cannot omit them.
         # Test files are included: a live key committed to a test is still live.
+        # Every file, including generated and vendored ones. A live key
+        # committed to `dist/bundle.min.js` is exactly as live as one in source,
+        # and restricting this to reviewable paths let it through untouched.
         "must_flag": [{"path": f["path"], "rule": "L2-SEC-01", "what": w}
-                      for f in files if f["kind"] in ("review", "test")
-                      for w in f["secrets"]],
+                      for f in files for w in f["secrets"]],
+        # For the model to judge, never demanded by the validator.
+        "possible_secrets": [{"path": f["path"], "text": s}
+                             for f in files for s in f["possible_secrets"]],
         "large_diff": total &gt; 2000,
         "total_lines_changed": total,
     }
@@ -4002,6 +4091,7 @@ def brief(res: dict) -&gt; dict:
             for f in res["files"]],
         "coverage": res["coverage"],
         "must_flag": res["must_flag"],
+        "possible_secrets": res["possible_secrets"],
         "test_expectation": res["test_expectation"],
         "large_diff": res["large_diff"],
     }
@@ -4040,7 +4130,7 @@ if __name__ == "__main__":
         sys.exit(0)
     except KeyboardInterrupt:
         sys.exit(130)
-</code></pre></details><details class="filed"><summary><span class="fn">run_evals.py</span><span class="fd">Self-contained eval runner for this agent.</span><span class="fl">212 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">run_evals.py</span><span class="fd">Self-contained eval runner for this agent.</span><span class="fl">216 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Self-contained eval runner for this agent.
 
 Runs standalone: it references no sibling agent, no shared library, and no path
@@ -4093,6 +4183,10 @@ def project_diff(out: str) -&gt; dict:
         "decisions": {f["path"]: {"kind": f["kind"],
                                   "skip_reason": f["skip_reason"]}
                       for f in d["files"]},
+        # Projected because it is a decision the reviewer is held to. Omitting
+        # it meant the entire secret scan could be deleted with every eval and
+        # every compliance check still green.
+        "must_flag": d.get("must_flag", []),
         "test_expectation": d["test_expectation"],
     }
 
@@ -4252,7 +4346,7 @@ def main() -&gt; int:
 
 if __name__ == "__main__":
     sys.exit(main())
-</code></pre></details><details class="filed"><summary><span class="fn">validate_findings.py</span><span class="fd">Findings validator for the Code Sentinel.</span><span class="fl">426 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">validate_findings.py</span><span class="fd">Findings validator for the Code Sentinel.</span><span class="fl">429 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Findings validator for the Code Sentinel.
 
 Makes the citation rule mechanical instead of aspirational. A finding that
@@ -4616,7 +4710,10 @@ def validate(md: str, ctx: pathlib.Path, today: dt.date,
                     f"(hunks start at {', '.join(str(s) for s in starts)}) - "
                     "cite a line the change actually touched")
 
-        for p in sorted(finding_paths &amp; skipped):
+        # A generated file may not be reviewed, but if a credential was
+        # committed to one the reviewer must be free to say so.
+        demanded = {norm_path(m["path"]) for m in diff.get("must_flag", [])}
+        for p in sorted(finding_paths &amp; skipped - demanded):
             errs.append(f"finding raised on {p}, which the parser marked "
                         "skip (generated/vendored) - it must not be reviewed")
         for p in sorted(finding_paths - reviewable - tests - skipped):
@@ -4651,7 +4748,7 @@ def main() -&gt; int:
     diff = None
     if a.diff:
         try:
-            diff = json.load(open(a.diff, encoding="utf-8"))
+            diff = json.load(open(a.diff, encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError) as e:
             print(f"usage: cannot read --diff {a.diff}: {e}", file=sys.stderr)
             return 2
@@ -4710,13 +4807,13 @@ if __name__ == "__main__":
       refuses here if the input is underspecified</text>
   </g>
 </svg><p class='muted'>The two boxes in <span style='color:var(--gold)'>colour</span> are ordinary Python. The dashed box is the only place the model is involved, and its output has to survive the box to its right.</p><h4>Eval suite, run just now</h4><pre><code>evals: code-sentinel
-  ok    parse_diff.py &lt;- 02-permissions.diff  [f5aaef77 x3] [golden ok]
-  ok    parse_diff.py &lt;- 04-mixed-format.diff  [8180731b x3] [golden ok]
-  ok    parse_diff.py &lt;- 06-empty.diff (must refuse)  [3c6f20e9 x3] [golden ok]
-  ok    parse_diff.py &lt;- 02-permissions.diff --brief  [a04994a7 x3] [golden ok]
+  ok    parse_diff.py &lt;- 02-permissions.diff  [96779480 x3] [golden ok]
+  ok    parse_diff.py &lt;- 04-mixed-format.diff  [da927fe6 x3] [golden ok]
+  ok    parse_diff.py &lt;- 06-empty.diff (must refuse)  [897c887d x3] [golden ok]
+  ok    parse_diff.py &lt;- 02-permissions.diff --brief  [1f57db0a x3] [golden ok]
   ok    validate_findings.py &lt;- valid-review.md (+brief diff)  [a0230a86 x3]
   ok    load_rules.py &lt;- context/  [af08522f x3]
-  ok    load_rules.py &lt;- NO CONTEXT (must refuse)  [87496da3 x3]
+  ok    load_rules.py &lt;- NO CONTEXT (must refuse)  [90ca2772 x3]
   ok    validate_findings.py &lt;- valid-review.md (+diff)  [a0230a86 x3]
   ok    validate_findings.py &lt;- valid-refusal.md  [a0230a86 x3]
   ok    validate_findings.py &lt;- adversarial-uncited-review.md  [12e52792 x3]

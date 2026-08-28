@@ -30,26 +30,39 @@ less context, never with an error.
 
 ## The envelope
 
+Every agent emits JSON with the same three identifying fields, then whatever its
+own work produced at the top level.
+
 ```json
 {
-  "agent": "jira-scribe",
+  "agent": "release-archivist",
   "version": "1.0",
-  "produced_at": "2026-08-06T10:00:00Z",
-  "source": "sprint-42-refinement-notes.txt",
-  "status": "ok | insufficient_input | no_output_required",
-  "payload": { },
-  "coverage": { "items_in": 47, "items_accounted": 47 },
-  "citations": ["L2-SEC-03", "L3-ARCH-07"]
+  "status": "ok | insufficient_input | unparseable",
+  "coverage": { "items_in": 15, "items_accounted": 15, "reconciles": true }
 }
 ```
 
 | Field | Meaning |
 |---|---|
-| `status` | `insufficient_input` is a **success** — the agent correctly refused to invent. Never an error. |
-| `coverage` | `items_in` must equal `items_accounted`. This is the zero-loss guarantee, checked by code. |
-| `citations` | Every rule the agent invoked. Empty list = no findings, which is a valid outcome. |
+| `agent` | Which agent produced this. Checked by the scenario runner. |
+| `version` | Envelope version, so a consumer can refuse a shape it does not know. |
+| `status` | `insufficient_input` is a **success** — the agent correctly refused to invent. Never an error. `unparseable` means the input looked like the right kind of thing and could not be read; that is a failure, and it exits non-zero. |
+| `coverage` | Present where the agent counts something. `items_in` must equal `items_accounted`. |
 
-`payload` is agent-specific and defined in that agent’s own `<agent>/references/output-contract.md`.
+**There is deliberately no timestamp.** Every envelope is a pure function of its
+input, which is what lets the eval suites assert byte-identical output across
+runs. A `produced_at` field would break that on the first run.
+
+Agent-specific data sits at the top level rather than under a `payload` key —
+`files` and `test_expectation` for the Sentinel, `candidates` and
+`missing_fields` for the Scribe, `items` and `unclassified` for the Archivist.
+Each is defined in that agent's own `references/output-contract.md`.
+
+Each parser also accepts `--brief`, which emits the same envelope reduced to the
+decisions still open. It keeps the identifying fields and the keys the
+downstream validator reads, so a brief envelope can be passed anywhere a full
+one can.
+
 
 ---
 

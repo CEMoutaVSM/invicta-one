@@ -52,7 +52,11 @@ PIPELINES = [
      "Sprint log -> coverage ledger -> notes checked against it"),
 ]
 
-ENVELOPE_STATUSES = {"ok", "insufficient_input", "no_output_required"}
+# The statuses the parsers actually emit. `no_output_required` was listed here
+# and produced by nothing, while `unparseable` was produced and not listed - so
+# the check accepted a value no agent could return and would have rejected one
+# they do.
+ENVELOPE_STATUSES = {"ok", "insufficient_input", "unparseable"}
 
 
 def produce(agent_root: pathlib.Path, agent: str, script: str,

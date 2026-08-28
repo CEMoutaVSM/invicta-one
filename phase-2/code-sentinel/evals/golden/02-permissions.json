@@ -21,6 +21,7 @@
       "skip_reason": "generated/vendored"
     }
   },
+  "must_flag": [],
   "test_expectation": {
     "new_branches": 1,
     "removed_branches": 0,

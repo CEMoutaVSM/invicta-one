@@ -8,6 +8,7 @@
     "skipped": 0
   },
   "decisions": {},
+  "must_flag": [],
   "test_expectation": {
     "new_branches": 0,
     "removed_branches": 0,
