@@ -16,6 +16,11 @@
         "text": "fix(auth): stop session dropping after 15 min idle PROJ-2790"
       },
       {
+        "line": 8,
+        "class": "FEATURE",
+        "text": "Revert \"Revert \"feat: draft invoice autosave\"\""
+      },
+      {
         "line": 9,
         "class": "IMPROVEMENT",
         "text": "improve: reduce invoice list load time from 4s to 900ms PROJ-2802"
@@ -33,6 +38,12 @@
     ],
     "classify": [
       {
+        "line": 8,
+        "text": "Revert \"Revert \"feat: draft invoice autosave\"\"",
+        "provisional": "FEATURE",
+        "why": "revert of a revert - the change is restored, so it ships; read from the inner subject ('feat: draft invoice autosave')"
+      },
+      {
         "line": 11,
         "text": "handle edge case in currency rounding",
         "provisional": "IMPROVEMENT",
@@ -46,6 +57,12 @@
       }
     ],
     "check": [
+      {
+        "line": 8,
+        "text": "Revert \"Revert \"feat: draft invoice autosave\"\"",
+        "provisional": "FEATURE",
+        "why": "revert of a revert - the change is restored, so it ships; read from the inner subject ('feat: draft invoice autosave')"
+      },
       {
         "line": 14,
         "text": "docs: update README",
@@ -84,13 +101,13 @@
     "lines_blank": 0,
     "lines_furniture": 0,
     "items_in": 15,
-    "published": 6,
+    "published": 7,
     "internal": 4,
-    "suppressed": 5,
+    "suppressed": 4,
     "duplicates_merged": 1,
     "duplicates_published": 0,
-    "expected_entries": 6,
-    "unclassified": 2,
+    "expected_entries": 7,
+    "unclassified": 3,
     "items_accounted": 15,
     "classes_reconcile": true,
     "lines_reconcile": true,

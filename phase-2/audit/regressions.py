@@ -593,11 +593,135 @@ def ledger_honesty() -> None:
          c == 0 and "against the classifier" in o, o.strip()[:200])
 
 
+# --------------------------------------------------------------------------
+# Round five. Auditor L attacked the round-four repairs; auditor M read the
+# submission cold. Both directions of the secret scanner were open again.
+# --------------------------------------------------------------------------
+def round_five() -> None:
+    import json
+
+    D = chr(10).join   # diffs are built from lists; no escapes to mangle
+
+    # L-1: a vendor's published example key must never DEMAND a finding. AWS
+    # documents AKIAIOSFODNN7EXAMPLE on its own site, and a negative test
+    # asserting a malformed key is rejected legitimately contains a PRIVATE
+    # KEY header. Demanding one forces an honest reviewer to fabricate.
+    d = D(['--- a/tests/test_mask.py', '+++ b/tests/test_mask.py',
+           '@@ -1,2 +1,4 @@',
+           '+    assert mask("AKIAIOSFODNN7EXAMPLE") == "AKIA****"',
+           '+    bad = "-----BEGIN PRIVATE KEY-----"', ''])
+    c, o = sh(PD, w("l1.diff", d))
+    j = json.loads(o)
+    case("L-01", "a published example key is advisory, never a demand",
+         not j["must_flag"] and len(j["possible_secrets"]) == 2,
+         str(j["must_flag"])[:200])
+
+    # L-2: comments were stripped by a regex that read the // in a URL as the
+    # start of a comment, deleting a live credential before anything saw it.
+    d = D(['--- a/src/Db.cs', '+++ b/src/Db.cs', '@@ -1,2 +1,3 @@',
+           '+CONN = "postgres://admin:prod-sk-9f8e7d6c5b4a@db.internal:5432/app"', ''])
+    c, o = sh(PD, w("l2.diff", d))
+    case("L-02", "a credential inside a URL is still demanded",
+         any(m["rule"] == "L2-SEC-01" for m in json.loads(o)["must_flag"]),
+         o[:200])
+
+    # ...and one written in a comment is still not demanded.
+    d = D(['--- a/src/Db.cs', '+++ b/src/Db.cs', '@@ -1,2 +1,3 @@',
+           '+// example: key = "sk_live_9fj3kd8sla02mfk3"', ''])
+    c, o = sh(PD, w("l2b.diff", d))
+    case("L-02b", "a credential in a comment is not demanded",
+         not json.loads(o)["must_flag"], o[:160])
+
+    # L-3: quoting the PR description is a documented input, not smuggling.
+    review = (CS / "evals/inputs/valid-review.md").read_text(encoding="utf-8")
+    quoted = review + D(["", "> This is a [BLOCKER] for the August release.", ""])
+    c, o = sh(VF, w("l3.md", quoted), "--today", "2026-08-06")
+    case("L-03", "a review may quote a severity word from the PR",
+         c == 0, o.strip()[:200])
+
+    # ...while a severity that LEADS a quote is still smuggling.
+    smug = review + D(["", "> [BLOCKER] hidden, uncited", ""])
+    c, o = sh(VF, w("l3b.md", smug), "--today", "2026-08-06")
+    case("L-03b", "a severity leading a blockquote is still caught",
+         c == 1 and "blockquote" in o, o.strip()[:160])
+
+    # L-4: reading keys from the ledger made the check exact, and blind to any
+    # key the ledger had not heard of - which passed with a false all-clear.
+    notes = (RA / "evals/inputs/valid-notes.md").read_text(encoding="utf-8")
+    leak = notes.replace("rounding is now consistent",
+                         "rounding is now consistent (tracked as ACME-4521)", 1)
+    c, o = sh(RAV, w("l4.md", leak))
+    case("L-04", "a ticket key absent from the ledger still counts as a leak",
+         c == 1 and "ACME-4521" in o, o.strip()[:160])
+
+    # ...and the false positives that caused the narrowing stay fixed.
+    fine = notes.replace("rounding is now consistent",
+                         "rounding is now consistent, meeting SLA-95 under "
+                         "US-2026 rules", 1)
+    c, o = sh(RAV, w("l4b.md", fine))
+    case("L-04b", "SLA-95 and US-2026 are not ticket keys", c == 0,
+         o.strip()[:160])
+
+    # L-6: the trace recorder certified itself - forcing its exit code to zero
+    # left verify.sh green. It now proves it can still say no.
+    c, o = sh(ROOT / "demo/refresh.py", "--self-test")
+    case("L-06", "the trace recorder detects a broken artefact",
+         c == 0, o.strip()[-200:])
+
+    # M-3: a revert of a revert RE-APPLIES the change. Filing it net zero
+    # shipped a feature, accounted for it, suppressed it, and told nobody.
+    log = D([chr(82) + 'evert "Revert "feat: draft invoice autosave""', ""])
+    c, o = sh(RAC, w("m3.log", log), "--json")
+    it = json.loads(o)["items"][0]
+    case("R5-03", "a revert of a revert ships, and is flagged for the model",
+         it["class"] == "FEATURE" and it["low_confidence"],
+         f'{it["class"]} low={it["low_confidence"]}')
+
+    # ...but a restored chore is still a chore, and costs no tokens.
+    log = D([chr(82) + 'evert "Revert "chore: bump deps""', ""])
+    c, o = sh(RAC, w("m3b.log", log), "--json")
+    it = json.loads(o)["items"][0]
+    case("R5-03b", "a restored chore stays noise",
+         it["class"] == "NOISE" and not it["low_confidence"], it["class"])
+
+    # M-1/M-2: every SKILL.md claims its Eval Log is generated from the runner
+    # and cannot drift. The generator was lost and the tables drifted, so the
+    # one machine-checkable sentence in the submission became its only false
+    # one. It is enforced here now.
+    c, o = sh(ROOT / "audit/refresh_eval_logs.py", "--check")
+    case("R5-01", "every committed Eval Log reproduces from a fresh run",
+         c == 0, o.strip()[-300:])
+    # M-9: the --brief saving was written as 17% and is 21% after this round's
+    # changes. A prose number that drifts silently is exactly what this round
+    # was about, so the figure in SKILL.md is measured rather than remembered.
+    import subprocess
+    f = CS / "evals/inputs/02-permissions.diff"
+    size = lambda *a: len(subprocess.run([sys.executable, str(PD), str(f), *a],
+                                         capture_output=True, text=True).stdout)
+    pct = round(100 * (size() - size("--brief")) / size())
+    claim = (CS / "SKILL.md").read_text(encoding="utf-8")
+    case("R5-09", "the stated --brief saving matches a measurement",
+         f"{pct}% smaller" in claim, f"measured {pct}%")
+    # Three numbers that used to be maintained by hand and drifted: each
+    # agent's defect count in its SKILL.md against the entries in its own
+    # delta log. A judge who counts them finds them equal.
+    for agent, root in (("code-sentinel", CS), ("jira-scribe", JS),
+                        ("release-archivist", RA)):
+        deltas = (root / "references/eval-deltas.md").read_text(encoding="utf-8")
+        n = len(re.findall(r"^\d+\. \*\*", deltas, re.M))
+        skill = (root / "SKILL.md").read_text(encoding="utf-8")
+        m = re.search(r"\*\*Deltas found and fixed\.\*\* (\d+) defects", skill)
+        case(f"R5-02-{agent[:3]}",
+             f"{agent} states as many defects as its delta log lists",
+             bool(m) and int(m.group(1)) == n,
+             f"SKILL says {m.group(1) if m else None}, log lists {n}")
+
 def main() -> int:
     for fn in (sentinel_shapes, sentinel_precision, sentinel_recall,
                sentinel_parsing, sentinel_context, secret_detection,
                archivist_zero_loss, archivist_leaks, archivist_classify,
-               false_positives, ledger_honesty, scribe, cross_cutting):
+               false_positives, ledger_honesty, scribe, cross_cutting,
+               round_five):
         fn()
 
     verbose = "-v" in sys.argv

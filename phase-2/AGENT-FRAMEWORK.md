@@ -200,7 +200,9 @@ This is the honest and defensible definition of determinism for an LLM system, a
 
 ### 5.2 The input corpus
 
-Nine real, anonymised, deliberately messy inputs — three per agent. Preserve the mess: typos, half-sentences, mixed Portuguese and English, contradictions, duplicates. Sanitised inputs produce a test suite that proves nothing.
+Real, anonymised, deliberately messy inputs — three per agent is the floor, not the
+target. These three agents started there and grew to 28 inputs across 36 cases as
+auditors found things. Preserve the mess: typos, half-sentences, mixed Portuguese and English, contradictions, duplicates. Sanitised inputs produce a test suite that proves nothing.
 
 Anonymise mechanically with a fixed substitution map (service names → `service-alpha`, people → `dev-a`, tickets → `PROJ-`, domains → `example.com`). Keep the map local; never commit it.
 
@@ -220,6 +222,14 @@ That last one is the test that proves calibration works.
 | **Coverage** | Input items accounted for (published + explicitly suppressed) | 100% |
 | **Precision** | Findings a human accepts ÷ total findings | ≥ 80% |
 | **Hallucination rate** | Claims not traceable to input or a cited rule | 0% |
+
+**Which of these a suite can actually measure.** The first three and refusal
+correctness are checked by `verify.sh` on every run. Precision and hallucination
+rate are *not*: both require a human to judge output a model wrote, so they are
+calibration targets for the shadow-run in §5.4, not numbers this repository can
+produce. What the repository enforces instead is structural: a finding without a
+cited rule is rejected, and a number absent from the input is rejected — which bounds
+hallucination without claiming to have measured it.
 | **Refusal correctness** | Under-specified inputs that trigger the failure mode instead of a guess | 100% |
 
 Coverage is how the Archivist proves "zero missing features": every input line is either published or suppressed with a reason, and the totals must reconcile.

@@ -7,26 +7,27 @@
     "lines_blank": 0,
     "lines_furniture": 0,
     "items_in": 15,
-    "published": 6,
+    "published": 7,
     "internal": 4,
-    "suppressed": 5,
+    "suppressed": 4,
     "duplicates_merged": 1,
     "duplicates_published": 0,
-    "expected_entries": 6,
-    "unclassified": 2,
+    "expected_entries": 7,
+    "unclassified": 3,
     "items_accounted": 15,
     "classes_reconcile": true,
     "lines_reconcile": true,
     "reconciles": true
   },
   "by_class": {
-    "FEATURE": 2,
-    "NOISE": 5,
+    "FEATURE": 3,
+    "NOISE": 4,
     "FIX": 2,
     "INTERNAL": 4,
     "IMPROVEMENT": 2
   },
   "needs_human_judgment": [
+    8,
     11,
     14
   ],
@@ -36,6 +37,12 @@
   "empty_release": false,
   "furniture": [],
   "unclassified": [
+    {
+      "line": 8,
+      "text": "Revert \"Revert \"feat: draft invoice autosave\"\"",
+      "provisional": "FEATURE",
+      "why": "revert of a revert - the change is restored, so it ships; read from the inner subject ('feat: draft invoice autosave')"
+    },
     {
       "line": 11,
       "text": "handle edge case in currency rounding",
@@ -142,12 +149,12 @@
       "line": 8,
       "raw": "1c3d5f7 Revert \"Revert \"feat: draft invoice autosave\"\"",
       "normalised": "Revert \"Revert \"feat: draft invoice autosave\"\"",
-      "class": "NOISE",
+      "class": "FEATURE",
       "rule": "R-02",
-      "reason": "revert of a revert - net zero",
+      "reason": "revert of a revert - the change is restored, so it ships; read from the inner subject ('feat: draft invoice autosave')",
       "tickets": [],
       "duplicate_of_line": null,
-      "low_confidence": false,
+      "low_confidence": true,
       "security": false
     },
     {

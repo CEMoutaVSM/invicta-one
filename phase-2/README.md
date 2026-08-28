@@ -151,11 +151,12 @@ repository where the whole loop is visible.
 
 ### Defects found and fixed
 
-Each agent's own list is in `<agent>/references/eval-deltas.md` — **31 in total**,
-10 in the Archivist, 8 in the Scribe, 13 in the Sentinel. Eleven were found by
-the build-time harness; the rest by **eight independent auditors across three
+Each agent's own list is in `<agent>/references/eval-deltas.md` — **36 in total**,
+12 in the Archivist, 8 in the Scribe, 16 in the Sentinel. Eleven were found by
+the build-time harness; the rest by **ten independent auditors across five
 rounds**, each running in a clean context, blind to the others and forbidden from
-reading this project's own conclusions.
+reading this project's own conclusions. Count them yourself: every check in
+`audit/regressions.py` carries the tag of the auditor that found it.
 
 The ones worth naming, because they are the ones a reader will not expect:
 
@@ -166,6 +167,7 @@ The ones worth naming, because they are the ones a reader will not expect:
 | **Zero-loss was a tautology.** The class buckets partition the items, so the identity could not fail | 40,000 fuzzed inputs, zero failures. Deleting a shipped feature passed |
 | **A guarantee weakened by its own author.** Letting the model reclassify uncertain lines was implemented as a *count*, which also permitted deleting a shipped feature | Now every published entry names the input line it reports, so the check is about *which* features shipped |
 | **Security demands that forced a lie.** The secret scanner fired on `// api_key = "your-key-here"` in a comment | An honest reviewer could not pass without fabricating a finding. It now demands only vendor-issued token formats |
+| **A revert of a revert shipped a feature to nobody.** Filed as "net zero" noise, accounted for, suppressed | The zero-loss guarantee reduced to line accounting: the demo's own log ships a feature the notes never mention, with every check green |
 | **The compliance audit counted table rows, not inputs** | `35/35 ALL GREEN` while an agent shipped two of the three required eval inputs — a scored requirement, missed by the check meant to catch it |
 
 The pattern across most of them: **the logic was sound and the input parsing
@@ -174,7 +176,7 @@ failed open.** A regex that did not match returned "clean" rather than
 to be caught.
 
 Every one is now a permanent test. `audit/regressions.py` reproduces them as
-**74 checks**, each tagged with the auditor and finding it descends from, so a
+**89 checks**, each tagged with the auditor and finding it descends from, so a
 failure names which defect returned rather than merely that something broke.
 
 ### Failure modes verified

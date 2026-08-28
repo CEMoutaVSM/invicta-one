@@ -1,18 +1,17 @@
 {
-  "input": "03-sprint42.log",
   "status": "ok",
   "coverage": {
     "lines_in": 15,
     "lines_blank": 0,
     "lines_furniture": 0,
     "items_in": 15,
-    "published": 6,
+    "published": 7,
     "internal": 4,
-    "suppressed": 5,
+    "suppressed": 4,
     "duplicates_merged": 1,
     "duplicates_published": 0,
-    "expected_entries": 6,
-    "unclassified": 2,
+    "expected_entries": 7,
+    "unclassified": 3,
     "items_accounted": 15,
     "classes_reconcile": true,
     "lines_reconcile": true,
@@ -48,7 +47,7 @@
       "rule": "R-06"
     },
     "8": {
-      "class": "NOISE",
+      "class": "FEATURE",
       "rule": "R-02"
     },
     "9": {
@@ -81,6 +80,7 @@
     }
   },
   "needs_human_judgment": [
+    8,
     11,
     14
   ],

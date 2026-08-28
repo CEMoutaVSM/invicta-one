@@ -41,17 +41,30 @@ comment reconciles to 15. Nothing vanishes.
 
 ## Composition rules
 
-Chaining is **data-only**. `run_scenario.py` reads one agent's output and passes it as
-optional extra context to the next. No agent imports another. No agent calls another.
+Chaining is **data-only**. No agent imports another, calls another, or reads another's
+files. The only thing shared is an envelope shape (`INTERCHANGE.md`), which nothing
+imports.
 
-The chain adds these strictly-additive behaviours:
+**What the chain actually runs today.** `run_scenario.py --mode chained` runs each
+agent's parser and feeds that envelope into that same agent's validator through the
+flag that consumes it — `--parsed`, `--diff`, `--ledger`. That is a real pipeline and
+it is what the test asserts: the envelope is written to disk, read back, and the
+downstream step either accepts it or fails.
 
-- Sentinel + story → also checks the diff against the story's acceptance criteria
-- Archivist + story → uses the story's customer-facing wording instead of the commit's
-- Archivist + review → warns if an unresolved BLOCKER is shipping in this release
+**What it does not run.** No script accepts a *sibling's* envelope. There is no
+`--story` flag on the Sentinel and no `--review` flag on the Archivist. Three
+cross-agent behaviours used to be listed here as though they existed:
 
-Remove any envelope and the downstream agent still runs on raw input. **With less
-context, never with an error.** That is the whole design.
+- Sentinel + story → check the diff against the story's acceptance criteria
+- Archivist + story → prefer the story's customer wording over the commit's
+- Archivist + review → warn when an unresolved BLOCKER is shipping
+
+They are what the interchange convention is *for*, and each is a few lines of argument
+parsing away. None is implemented, none is evaluated, and listing them as behaviour
+overstated what a reader can run. They are kept here as the roadmap they are.
+
+Remove any envelope and every agent still runs on raw input. **With less context, never
+with an error.** That part is tested, in both modes.
 
 ---
 
@@ -61,8 +74,9 @@ context, never with an error.** That is the whole design.
 ```bash
 python scenario/run_scenario.py --mode chained
 ```
-All three run in sequence, envelopes passed forward. Expected: 3/3 stages complete, the
-Sentinel reports one suppression, the Archivist ledger reconciles.
+All three run in sequence, each envelope passed into the step that consumes it.
+Expected: 3/3 stages complete, every envelope matching the interchange shape, and
+every downstream validator exiting 0.
 
 ### Independence test — the important one
 ```bash

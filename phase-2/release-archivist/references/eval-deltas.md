@@ -38,3 +38,16 @@ loads on every run carries instructions rather than history.
 10. **The Eval Log described a fixture that did not exist.** Row 3 claimed a
     leaky-notes input with "4/4 caught"; the third input was a clean file. The
     fixture now exists and is case 6.
+11. **A ticket key leaked with a clean bill of health.** Reading keys from the
+    classifier ledger made the check exact and therefore blind: `(tracked as
+    ACME-4521)` is plainly a ticket key, was not in this release's log, and
+    printed `no internal tokens leaked`. Silence would have been better than a
+    false all-clear. Shape detection is back alongside the ledger, without the
+    part that made it wrong — `SLA-95` is a service level and `US-2026` a year.
+12. **A revert of a revert shipped a feature to nobody.** R-02 called it "net
+    zero", which is backwards: reverting a revert re-applies the change. The
+    flagship demo log ships `draft invoice autosave` that way; it was filed
+    NOISE, accounted for, suppressed, never mentioned, and every check stayed
+    green — the zero-loss guarantee reduced to line accounting. It is now
+    classified from the subject it restores and handed to the model, because
+    whether it is new *to customers* is not something the log can settle.

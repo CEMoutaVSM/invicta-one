@@ -74,8 +74,14 @@ FINDING_LIKE = re.compile(
 # A severity anywhere inside a table row or a blockquote. Bold and bullets were
 # already caught; a table cell and a `>` quote were the next two shapes, and an
 # uncited BLOCKER in either passed with an APPROVE verdict.
-SMUGGLED = re.compile(r"^[ \t]*(?:\||>)(?P<row>.*\[(?P<sev>BLOCKER|MAJOR|MINOR|"
-                      r"CRITICAL|CATASTROPHIC|WARNING)\].*)$", re.M | re.I)
+SEV_WORDS = r"BLOCKER|MAJOR|MINOR|CRITICAL|CATASTROPHIC|WARNING"
+# A severity that LEADS a table cell or a blockquote is a finding wearing a
+# disguise. One mentioned mid-sentence is prose - very often a quotation of the
+# PR description, which is a documented input and must stay quotable.
+SMUGGLED_ROW = re.compile(r"^[ 	]*\|(?P<row>.+)$", re.M)
+SMUGGLED_CELL = re.compile(r"^[ 	>*_`]*\[(?P<sev>" + SEV_WORDS + r")\]", re.I)
+SMUGGLED_QUOTE = re.compile(r"^[ 	]*>+[ 	]*(?P<row>[*_`]*\[(?P<sev>" + SEV_WORDS
+                            + r")\].*)$", re.M | re.I)
 WHERE = re.compile(r"^\s*[-*+]?\s*Where\s*:\s*([^\s:]+)", re.M | re.I)
 WHERE_FULL = re.compile(r"^\s*[-*+]?\s*Where\s*:\s*(\S+)", re.M | re.I)
 RULE = re.compile(r"^\s*[-*+]?\s*Rule\s*:\s*(L[23]-[A-Z]+-\d+)", re.M | re.I)
@@ -145,11 +151,18 @@ def stray_findings(md: str, found: list[dict]) -> list[str]:
         out.append(f"[{m.group('sev')}] written as {shape}, not a heading - "
                    "findings must use a `### [SEVERITY] summary` heading or "
                    "they escape validation")
-    for m in SMUGGLED.finditer(md):
-        if any(s and s in m.group("row") for s in seen):
+    smuggled = []
+    for m in SMUGGLED_ROW.finditer(md):
+        for cell in m.group("row").split("|"):
+            if (c := SMUGGLED_CELL.match(cell.strip())):
+                smuggled.append((c.group("sev"), m.group("row"), "a table row"))
+                break
+    for m in SMUGGLED_QUOTE.finditer(md):
+        smuggled.append((m.group("sev"), m.group("row"), "a blockquote"))
+    for sev, row, shape in smuggled:
+        if any(s and s in row for s in seen):
             continue
-        shape = "a table row" if m.group(0).lstrip().startswith("|") else "a blockquote"
-        out.append(f"[{m.group('sev').upper()}] written inside {shape}, not a "
+        out.append(f"[{sev.upper()}] written inside {shape}, not a "
                    "heading - a severity that is not a `### [SEVERITY]` heading "
                    "escapes the citation rule entirely")
     return out

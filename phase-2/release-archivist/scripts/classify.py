@@ -48,6 +48,9 @@ HASH = re.compile(r"\b[0-9a-f]{7,40}\b")
 # rule R-09 saw the word "dashboard" before any FEATURE rule could run. Five
 # shipped features were silently reclassified that way, with the ledger still
 # reporting a clean reconcile.
+REVERT_OF_REVERT = re.compile(
+    r"^\s*Reverts?\s+[\"“]\s*Reverts?\s+[\"“](?P<inner>.*?)[\"”]?\s*[\"”]?\s*$", re.I)
+
 RULES = [
     ("R-05", r"^\s*(chore|style|ci|build)(\(.+?\))?:", "NOISE",
      "conventional-commit non-shipping type"),
@@ -59,7 +62,9 @@ RULES = [
      "conventional-commit fix"),
     ("R-01", r"^\s*Merge (branch|pull request|remote-tracking)", "NOISE",
      "merge commit"),
-    ("R-02", r"^\s*Revert \"Revert", "NOISE", "revert of a revert - net zero"),
+    # R-02 is handled ahead of the table, in `classify_one`: a revert of a
+    # revert RE-APPLIES the change, so "net zero" was backwards. It is
+    # classified from the subject it restores, and flagged for the model.
     # A plain revert un-ships whatever it names. Without this the reverted
     # subject line was read as the feature itself: `Revert "Add bulk invoice
     # import"` classified FEATURE, and the release announced something the
@@ -152,6 +157,22 @@ def normalise(line: str) -> str:
 
 
 def classify_one(text: str) -> tuple[str, str, str, bool]:
+    # A revert of a revert restores the change: the feature IS in this release.
+    # Calling it "net zero" filed `Revert "Revert "feat: draft invoice autosave""`
+    # as NOISE, so a shipped feature was accounted for, suppressed, never
+    # mentioned to the customer, and every check stayed green. Whether it is new
+    # TO CUSTOMERS also depends on where the original shipped, which the log does
+    # not say - so the line is classified from the subject it restores and handed
+    # to the model rather than settled here.
+    if m := REVERT_OF_REVERT.match(text):
+        inner = m.group("inner").strip() or text
+        cls, rid, reason, _ = classify_one(inner) if inner != text             else ("FEATURE", "R-02", "", False)
+        # A restored chore is still a chore. Only a restored publishable change
+        # is worth the model's attention.
+        return (cls, "R-02",
+                f"revert of a revert - the change is restored, so it ships; "
+                f"read from the inner subject ({inner[:40]!r})",
+                cls in ("FEATURE", "FIX", "IMPROVEMENT"))
     matches = [(rid, cls) for rid, pat, cls, _ in COMPILED if pat.search(text)]
     for rid, pat, cls, reason in COMPILED:
         if not pat.search(text):

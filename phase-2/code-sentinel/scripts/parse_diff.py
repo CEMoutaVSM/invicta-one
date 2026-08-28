@@ -104,6 +104,55 @@ STRING = re.compile(r"\"(?:[^\"\\]|\\.)*\"|'(?:[^'\\]|\\.)*'")
 COMMENT = re.compile(r"(//|#|--\s).*$|/\*.*?\*/", re.S)
 
 
+def strip_comments(s: str) -> str:
+    """Remove comments, leaving string literals intact.
+
+    A regex cannot do this. `COMMENT` treated the `//` in
+    `"postgres://admin:prod-sk-9f8e@db"` as the start of a comment and deleted
+    the credential with the rest of the line, so a live key reached neither the
+    demand list nor the advisory one. Anything inside quotes is text, `//` and
+    `#` included.
+    """
+    out, i, n, quote = [], 0, len(s), None
+    while i < n:
+        c = s[i]
+        if quote:
+            out.append(c)
+            if c == "\\" and i + 1 < n:
+                out.append(s[i + 1])
+                i += 2
+                continue
+            if c == quote:
+                quote = None
+            i += 1
+            continue
+        if c in "\"'":
+            quote, i = c, i + 1
+            out.append(c)
+            continue
+        if s.startswith("/*", i):
+            end = s.find("*/", i + 2)
+            i = n if end < 0 else end + 2
+            continue
+        if s.startswith("//", i) or c == "#" or s.startswith("-- ", i):
+            break
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
+# Vendors publish sample credentials that are syntactically perfect and
+# deliberately dead: AWS documents AKIAIOSFODNN7EXAMPLE on its own site, and a
+# negative test asserting that a malformed key is rejected legitimately contains
+# a PRIVATE KEY header. Demanding a finding for either forces an honest reviewer
+# to fabricate one, which is the failure this scanner exists to prevent.
+EXAMPLE_TOKEN = re.compile(r"(?i)example|dummy|sample|fake|redacted|"
+                           r"not[-_]?a[-_]?real|deadbeef|0000000|1234567890|"
+                           r"AAAAAAAA|xxxxx")
+# A PRIVATE KEY header with no key material after it is a header, not a key.
+KEY_MATERIAL = re.compile(r"-----\s*\S{16,}")
+
+
 def is_branch(line: str) -> bool:
     body = STRING.sub(" ", line[1:])     # strings first: they can contain # and //
     return bool(BRANCH.search(COMMENT.sub("", body)))
@@ -183,14 +232,28 @@ def parse(text: str) -> dict:
             # Comments are stripped first: an example credential written in a
             # comment is documentation, not a leak, and demanding a finding for
             # it made an honest review impossible to write.
-            code = COMMENT.sub("", line[1:])
+            code = strip_comments(line[1:])
             for pat, what in SECRET_PAT:
-                if pat.search(code) and what not in cur["secrets"]:
+                if not (m2 := pat.search(code)):
+                    continue
+                tok = m2.group(0)
+                # A vendor's published example key, and a bare PRIVATE KEY
+                # header in a test, are not credentials. Advisory, never a
+                # demand: forcing a reviewer to invent a finding about a
+                # non-defect is the worse of the two failure modes.
+                dead = bool(EXAMPLE_TOKEN.search(tok)) or (
+                    what == "private key" and cur["kind"] == "test"
+                    and not KEY_MATERIAL.search(code))
+                if dead:
+                    note = f"{what} (reads as an example): {tok[:40]}"
+                    if note not in cur["possible_secrets"]:
+                        cur["possible_secrets"].append(note)
+                elif what not in cur["secrets"]:
                     cur["secrets"].append(what)
             if SPLIT_SECRET.search(code) and "split credential" not in cur["secrets"]:
                 cur["secrets"].append("split credential")
-            if MAYBE_SECRET.search(code) and not PLACEHOLDER.search(code):
-                snippet = MAYBE_SECRET.search(code).group(0).strip()[:60]
+            if (m2 := MAYBE_SECRET.search(code)) and not PLACEHOLDER.search(code):
+                snippet = m2.group(0).strip()[:60]
                 if snippet not in cur["possible_secrets"]:
                     cur["possible_secrets"].append(snippet)
         elif line.startswith("-"):

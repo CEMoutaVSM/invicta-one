@@ -163,6 +163,34 @@ def mask_fences(text: str) -> str:
     return "\n".join(out)
 
 
+# Ticket-shaped, minus the things that merely look it. The narrow list of known
+# prefixes that replaced this let `ACME-4521` leak with a clean bill of health.
+TICKET_SHAPE = re.compile(r"\b(?P<prefix>[A-Z][A-Z0-9]{1,9})-(?P<num>\d{1,6})\b")
+# Prefixes that name a standard, a measurement or a place - never a tracker.
+# `SLA-95` is a service level and `US-2026` is a year; both were reported as
+# leaked ticket keys in release prose that was entirely correct.
+NOT_TRACKERS = {
+    "SLA", "ISO", "RFC", "GDPR", "CVE", "PCI", "SOC", "ITIL", "IEEE", "ANSI",
+    "UTF", "SHA", "MD", "AES", "RSA", "TLS", "SSL", "HTTP", "API", "OKR", "KPI",
+    "EU", "US", "UK", "PT", "DK", "NO", "SE", "FI", "NL", "DE", "Q", "H", "V",
+    "FY", "IE", "COVID",
+}
+
+
+def ticket_keys_in(text: str) -> list[str]:
+    """Ticket keys by shape, for keys the ledger does not know about."""
+    out = []
+    for m in TICKET_SHAPE.finditer(text):
+        prefix, num = m.group("prefix"), m.group("num")
+        if prefix in NOT_TRACKERS:
+            continue
+        if len(num) == 4 and 1900 <= int(num) <= 2100:
+            continue          # a year, not a ticket
+        if m.group(0) not in out:
+            out.append(m.group(0))
+    return out
+
+
 def ticket_keys_from_ledger(ledger: dict | None) -> list[str]:
     """The ticket keys this release actually touched.
 
@@ -387,10 +415,18 @@ def validate(md: str, ledger: dict | None,
                         "in the customer-facing sections")
 
     body = customer_section(md)
-    for key in ticket_keys_from_ledger(ledger):
+    ledger_keys = ticket_keys_from_ledger(ledger)
+    for key in ledger_keys:
         if re.search(rf"\b{re.escape(key)}\b", body):
             errs.append(f"ticket key leaked into customer-facing text: {key!r} "
                         "(it appears in the input log)")
+    # Keys the ledger has never heard of still leak. Reading the ledger made
+    # the check exact and therefore blind to `(tracked as ACME-4521)`, which
+    # passed with `no internal tokens leaked` printed over it.
+    for key in ticket_keys_in(body):
+        if key not in ledger_keys:
+            errs.append(f"ticket key leaked into customer-facing text: "
+                        f"{key!r} (ticket-shaped; not from this release's log)")
     for pat, label in STRUCTURAL_LEAKS:
         for hit in sorted({h if isinstance(h, str) else h[0]
                            for h in pat.findall(body)}):

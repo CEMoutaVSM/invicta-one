@@ -50,3 +50,21 @@ loads on every run carries instructions rather than history.
     every decision unnoticed. `run_evals.py` now diffs against golden field by
     field, and `audit/run_audit.py` corrupts a golden on a copy to prove the gate
     bites.
+14. **A published example key demanded a finding.** AWS documents
+    `AKIAIOSFODNN7EXAMPLE` on its own site, and a negative test asserting a
+    malformed key is rejected legitimately contains a `PRIVATE KEY` header. The
+    scanner demanded an `L2-SEC-01` for both, so an honest reviewer could not
+    pass without inventing a finding about something that was not a defect.
+    Example-shaped tokens are advisory now, never a demand.
+15. **A live credential inside a URL was invisible.** Comments were stripped by a
+    regex that read the `//` in
+    `"postgres://admin:prod-sk-...@db.internal"` as the start of a comment and
+    deleted the credential with the rest of the line. It reached neither the
+    demand list nor the advisory one. Comments are now stripped by a scanner
+    that knows what a string literal is.
+16. **Quoting the PR was treated as smuggling.** The check that stops a severity
+    hiding in a table cell or a blockquote matched the marker anywhere in the
+    row, so a review quoting `> This is a [BLOCKER] for the August release` —
+    the PR description, a documented input — was rejected. A smuggled finding
+    leads its cell; a quotation mentions it in passing. The check now requires
+    that position, and still catches the disguise.
