@@ -27,6 +27,17 @@ if [ "$rc" -ne 0 ]; then
   printf '%s\n' "$out" | grep -E 'FAIL|^\s+!' | sed 's/^/  /'
 fi
 
+echo; echo "=== auditor regressions ==="
+# Every defect eight independent auditors found, reproduced as a test. The
+# per-agent suites prove the agents work; these prove that a finding which was
+# fixed has not quietly come back.
+out=$( "$PY" audit/regressions.py 2>&1 ); rc=$?
+printf '%s\n' "$out" | head -1
+if [ "$rc" -ne 0 ]; then
+  fail=1
+  printf '%s\n' "$out" | grep -E 'FAIL|REGRESSION' | sed 's/^/  /'
+fi
+
 echo; echo "=== compliance audit ==="
 "$PY" audit/run_audit.py || fail=1
 
