@@ -201,7 +201,7 @@ This is the honest and defensible definition of determinism for an LLM system, a
 ### 5.2 The input corpus
 
 Real, anonymised, deliberately messy inputs — three per agent is the floor, not the
-target. These three agents started there and grew to 28 inputs across 36 cases as
+target. These three agents started there and grew to 29 inputs across 38 cases as
 auditors found things. Preserve the mess: typos, half-sentences, mixed Portuguese and English, contradictions, duplicates. Sanitised inputs produce a test suite that proves nothing.
 
 Anonymise mechanically with a fixed substitution map (service names → `service-alpha`, people → `dev-a`, tickets → `PROJ-`, domains → `example.com`). Keep the map local; never commit it.

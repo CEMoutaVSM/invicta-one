@@ -28,7 +28,7 @@ by the validator rather than typed.
 ## What each one shows
 
 - **release-archivist** — fifteen lines of git log, with merges, a
-  revert-of-revert and duplicate ticket keys, become six customer-facing
+  revert-of-revert and duplicate ticket keys, become seven customer-facing
   entries. The ledger reconciles line-for-line, and every published bullet names
   the input line it reports.
 - **jira-scribe** — a brain dump becomes a story with Given-When-Then criteria.

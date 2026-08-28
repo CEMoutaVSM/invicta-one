@@ -68,6 +68,13 @@ def record(trace, out: pathlib.Path, artefact: pathlib.Path | None = None):
     cmd = [a.replace("{input}", str(out / name_in)) for a in parse_cmd]
     _, parsed = run(agent, cmd)
     (out / name_parsed).write_text(parsed, encoding="utf-8")
+    # The human-readable form of the same run. It used to be written once
+    # by hand and then contradicted the JSON beside it for two rounds.
+    readable = name_parsed.replace("-ledger.json", "-classified.txt")
+    human = out / readable
+    if human.name != name_parsed:
+        _, table = run(agent, [c for c in cmd if c != "--json"])
+        human.write_text(table, encoding="utf-8")
 
     cmd = [a.replace("{artefact}", str(out / name_art))
             .replace("{parsed}", str(out / name_parsed)) for a in val_cmd]

@@ -69,19 +69,35 @@ ANY_HEADING = re.compile(r"^#{1,6}\s", re.M)
 # Finding-shaped text that is NOT a contract heading — bold or a plain bullet.
 # Both were routes to smuggling an uncited finding past the parser.
 FINDING_LIKE = re.compile(
-    r"^[ \t]*(?P<pre>(?:[-*+>|][ \t]*)?\*{0,2}(?:\|[ \t]*)?)"
-    r"\[(?P<sev>\w+)\]\*{0,2}[ \t]*\S", re.M)
+    r"^[ 	]*(?P<pre>(?:[-*+|][ 	]*)?[*]{0,2}(?:[|][ 	]*)?)"
+    r"[[](?P<sev>[\w]+)[]][*]{0,2}[ 	]*[\S]", re.M)
+# `>` is deliberately absent from the prefix: a blockquote is quoted input, not
+# the reviewer's voice. A review that quoted the PR description - a documented
+# input - was being rejected. An emphasised severity is still caught anywhere by
+# EMPHASISED_SEV, which is what a reviewer asserting one actually writes.
 # A severity anywhere inside a table row or a blockquote. Bold and bullets were
 # already caught; a table cell and a `>` quote were the next two shapes, and an
 # uncited BLOCKER in either passed with an APPROVE verdict.
 SEV_WORDS = r"BLOCKER|MAJOR|MINOR|CRITICAL|CATASTROPHIC|WARNING"
-# A severity that LEADS a table cell or a blockquote is a finding wearing a
-# disguise. One mentioned mid-sentence is prose - very often a quotation of the
-# PR description, which is a documented input and must stay quotable.
-SMUGGLED_ROW = re.compile(r"^[ 	]*\|(?P<row>.+)$", re.M)
-SMUGGLED_CELL = re.compile(r"^[ 	>*_`]*\[(?P<sev>" + SEV_WORDS + r")\]", re.I)
-SMUGGLED_QUOTE = re.compile(r"^[ 	]*>+[ 	]*(?P<row>[*_`]*\[(?P<sev>" + SEV_WORDS
-                            + r")\].*)$", re.M | re.I)
+# A severity the reviewer EMPHASISES is the reviewer asserting it, wherever it
+# sits. `**[BLOCKER]** the auth check can be bypassed` mid-paragraph, and the
+# same thing in <b> tags, both passed every check while reading to a human as
+# exactly what they are. Emphasis is the signal; position is not.
+#
+# (The patterns below avoid backslash escapes deliberately - character classes
+# say the same thing and survive every editor and shell this repo passes
+# through. A mangled escape here silently disarms the citation rule.)
+EMPHASISED_SEV = re.compile(
+    r"(?:[*][*]|__|<(?:b|strong|em|i|mark)>)[ ]*[[](?P<sev>"
+    + SEV_WORDS + r")[]]", re.I)
+# A severity that LEADS a table cell is a finding wearing a disguise.
+SMUGGLED_ROW = re.compile(r"^[ " + chr(9) + r"]*[|](?P<row>.+)$", re.M)
+SMUGGLED_CELL = re.compile(r"^[*_`]*[[](?P<sev>" + SEV_WORDS + r")[]]", re.I)
+# Blockquotes are NOT read as findings. A blockquote is quoted material -
+# usually the PR description, which is a documented input - and rejecting a
+# review for quoting what it reviews is the false positive that gets a
+# validator switched off. A reviewer who means it emphasises it, and
+# EMPHASISED_SEV catches that wherever it appears.
 WHERE = re.compile(r"^\s*[-*+]?\s*Where\s*:\s*([^\s:]+)", re.M | re.I)
 WHERE_FULL = re.compile(r"^\s*[-*+]?\s*Where\s*:\s*(\S+)", re.M | re.I)
 RULE = re.compile(r"^\s*[-*+]?\s*Rule\s*:\s*(L[23]-[A-Z]+-\d+)", re.M | re.I)
@@ -157,8 +173,15 @@ def stray_findings(md: str, found: list[dict]) -> list[str]:
             if (c := SMUGGLED_CELL.match(cell.strip())):
                 smuggled.append((c.group("sev"), m.group("row"), "a table row"))
                 break
-    for m in SMUGGLED_QUOTE.finditer(md):
-        smuggled.append((m.group("sev"), m.group("row"), "a blockquote"))
+    # An emphasised severity is a finding wherever it sits - including
+    # mid-paragraph, which escaped every check while reading as a blocker.
+    for m in EMPHASISED_SEV.finditer(md):
+        eol = md.find(chr(10), m.start())
+        line = md[md.rfind(chr(10), 0, m.start()) + 1:
+                  eol if eol > 0 else len(md)]
+        if line.lstrip().startswith(("#", ">")):
+            continue          # a heading is the correct shape; a quote is input
+        smuggled.append((m.group("sev"), line, "emphasised prose"))
     for sev, row, shape in smuggled:
         if any(s and s in row for s in seen):
             continue

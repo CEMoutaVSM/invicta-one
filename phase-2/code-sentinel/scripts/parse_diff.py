@@ -134,7 +134,11 @@ def strip_comments(s: str) -> str:
             end = s.find("*/", i + 2)
             i = n if end < 0 else end + 2
             continue
-        if s.startswith("//", i) or c == "#" or s.startswith("-- ", i):
+        # A `//` preceded by `:` is a URL scheme, not a comment. Fixing
+        # only the quoted form left `DATABASE_URL=postgres://admin:KEY@h`
+        # - a .env, YAML or Dockerfile line - still losing its credential.
+        if (s.startswith("//", i) and not (i and s[i - 1] == ":")) \
+                or c == "#" or s.startswith("-- ", i):
             break
         out.append(c)
         i += 1
@@ -147,8 +151,7 @@ def strip_comments(s: str) -> str:
 # a PRIVATE KEY header. Demanding a finding for either forces an honest reviewer
 # to fabricate one, which is the failure this scanner exists to prevent.
 EXAMPLE_TOKEN = re.compile(r"(?i)example|dummy|sample|fake|redacted|"
-                           r"not[-_]?a[-_]?real|deadbeef|0000000|1234567890|"
-                           r"AAAAAAAA|xxxxx")
+                           r"not[-_]?a[-_]?real|placeholder|changeme")
 # A PRIVATE KEY header with no key material after it is a header, not a key.
 KEY_MATERIAL = re.compile(r"-----\s*\S{16,}")
 
@@ -241,9 +244,11 @@ def parse(text: str) -> dict:
                 # header in a test, are not credentials. Advisory, never a
                 # demand: forcing a reviewer to invent a finding about a
                 # non-defect is the worse of the two failure modes.
+                # A PRIVATE KEY header with nothing after it is a
+                # header. Gating that on the file being a test forced a
+                # finding for the same header in `docs/format.md`.
                 dead = bool(EXAMPLE_TOKEN.search(tok)) or (
-                    what == "private key" and cur["kind"] == "test"
-                    and not KEY_MATERIAL.search(code))
+                    what == "private key" and not KEY_MATERIAL.search(code))
                 if dead:
                     note = f"{what} (reads as an example): {tok[:40]}"
                     if note not in cur["possible_secrets"]:

@@ -51,3 +51,13 @@ loads on every run carries instructions rather than history.
     green — the zero-loss guarantee reduced to line accounting. It is now
     classified from the subject it restores and handed to the model, because
     whether it is new *to customers* is not something the log can settle.
+13. **Shape alone was wrong in both directions.** `PROJ-1234567` leaked (the
+    digit bound was too tight) while `RS-232 serial devices`, `RJ-45` and
+    `RTX-4090` in genuine release prose were rejected as leaked ticket keys -
+    and a validator that rejects correct notes is switched off as fast as one
+    that misses leaks. A pasted key arrives announced (`tracked as ACME-4521`);
+    a standard is a noun phrase. Ledger keys remain exact and unconditional.
+14. **A malformed double revert invented a feature.** `Revert "Revert ""` names
+    nothing, fell through to the whole-line fallback, and was filed FEATURE -
+    after which the validator demanded a customer entry for it, extracting an
+    invented note from a garbage line.

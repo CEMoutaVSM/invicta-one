@@ -231,22 +231,22 @@ describe a case the suite does not run.
 | 6 | `load_rules.py <- context/` | 3 | `af08522f` x3 | — | PASS |
 | 7 | `load_rules.py <- NO CONTEXT (must refuse)` | 3 | `90ca2772` x3 | — | PASS |
 | 8 | `validate_findings.py <- valid-review.md (+diff)` | 3 | `a0230a86` x3 | — | PASS |
-| 9 | `validate_findings.py <- valid-refusal.md` | 3 | `a0230a86` x3 | — | PASS |
-| 10 | `validate_findings.py <- adversarial-uncited-review.md` | 3 | `12e52792` x3 | — | PASS |
-| 11 | `validate_findings.py <- adversarial-verdict-contradiction.md` | 3 | `146f121d` x3 | — | PASS |
-| 12 | `validate_findings.py <- adversarial-refusal-bypass.md` | 3 | `2e58312a` x3 | — | PASS |
-| 13 | `validate_findings.py <- adversarial-style-only.md` | 3 | `45f07af9` x3 | — | PASS |
-| 14 | `validate_findings.py <- adversarial-uncited-only.md` | 3 | `0fa02512` x3 | — | PASS |
-| 15 | `load_rules.py <- expected-suppressions.json` | 3 | deterministic | yes | PASS |
+| 9 | `validate_findings.py <- adversarial-missed-defect.md (no diff, passes)` | 3 | `a0230a86` x3 | — | PASS |
+| 10 | `validate_findings.py <- adversarial-missed-defect.md (+diff, must fail)` | 3 | `4b8519a0` x3 | — | PASS |
+| 11 | `validate_findings.py <- valid-refusal.md` | 3 | `a0230a86` x3 | — | PASS |
+| 12 | `validate_findings.py <- adversarial-uncited-review.md` | 3 | `12e52792` x3 | — | PASS |
+| 13 | `validate_findings.py <- adversarial-verdict-contradiction.md` | 3 | `146f121d` x3 | — | PASS |
+| 14 | `validate_findings.py <- adversarial-refusal-bypass.md` | 3 | `2e58312a` x3 | — | PASS |
+| 15 | `validate_findings.py <- adversarial-style-only.md` | 3 | `45f07af9` x3 | — | PASS |
+| 16 | `validate_findings.py <- adversarial-uncited-only.md` | 3 | `0fa02512` x3 | — | PASS |
+| 17 | `load_rules.py <- expected-suppressions.json` | 3 | deterministic | yes | PASS |
 
-**15/15 passed.**
+**17/17 passed.**
 
-**Both directions are tested.** Case 7 proves the agent cannot say what it
-cannot cite. Case 5 proves the opposite and harder thing: a review that *misses*
-a defect the parser already proved is a failed review. Given the same diff, a
-blind `APPROVE — no findings` now fails with `MISSED: 1 new branch with 0 test
-files touched, but no finding cites L2-TEST-01`. Precision without recall is a
-reviewer that approves everything and is never wrong.
+**Both directions are tested.** Case 12 proves the agent cannot say what it
+cannot cite. Cases 9 and 10 prove the opposite and harder thing: the same blind
+`APPROVE` passes without `--diff` and fails with it, because a review that *misses* a
+defect the parser proved is there is a failed review, not a lenient one.
 
 **Calibration verified.** On input 1 the diff touches `legacy/billing/`, where a
 controller calls a repository directly — a real `L3-ARCH-01` violation that
@@ -258,4 +258,4 @@ authorisation decided by a client-supplied flag (`L2-SEC-05`).
 flagging `L3-EVENT-01` on `src/onboarding` with no human involvement. The
 calibration layer has a clock, so the registry cannot rot into a list of excuses.
 
-**Deltas found and fixed.** 16 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.
+**Deltas found and fixed.** 21 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.

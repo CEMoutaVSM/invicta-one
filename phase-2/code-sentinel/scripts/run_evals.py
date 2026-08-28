@@ -138,6 +138,16 @@ def main() -> int:
         ("validate_findings.py <- valid-review.md (+diff)",
          "validate_findings.py",
          [INPUTS / "valid-review.md", "--diff", pd, "--today", TODAY], {0}, None),
+        # A blind APPROVE: well-formed, internally consistent, and silent
+        # about defects the parser proved are in the diff. Without --diff it
+        # passes; with it, it must fail. That contrast IS the recall claim.
+        ("validate_findings.py <- adversarial-missed-defect.md (no diff, passes)",
+         "validate_findings.py",
+         [INPUTS / "adversarial-missed-defect.md", "--today", TODAY], {0}, None),
+        ("validate_findings.py <- adversarial-missed-defect.md (+diff, must fail)",
+         "validate_findings.py",
+         [INPUTS / "adversarial-missed-defect.md", "--diff", pd,
+          "--today", TODAY], {1}, None),
         ("validate_findings.py <- valid-refusal.md", "validate_findings.py",
          [INPUTS / "valid-refusal.md", "--today", TODAY], {0}, None),
         ("validate_findings.py <- adversarial-uncited-review.md",

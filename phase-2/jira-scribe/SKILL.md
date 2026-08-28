@@ -75,7 +75,7 @@ a successful run.
 **Ask for `--brief`.** `python scripts/parse_input.py <file> --brief` drops the
 cleaned transcript and the raw digit list — you already have the input — and
 keeps what you cannot derive: what is missing, what is ambiguous, and which
-figures were genuinely stated. About **60% smaller** than the full envelope.
+figures were genuinely stated. About **51% smaller** than the full envelope.
 
 ## 5. Operating rules
 

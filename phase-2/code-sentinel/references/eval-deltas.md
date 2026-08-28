@@ -68,3 +68,24 @@ loads on every run carries instructions rather than history.
     the PR description, a documented input — was rejected. A smuggled finding
     leads its cell; a quotation mentions it in passing. The check now requires
     that position, and still catches the disguise.
+17. **The quoted URL was fixed and the unquoted one was not.** A `.env`, YAML
+    or Dockerfile line `DATABASE_URL=postgres://admin:KEY@db.internal` still
+    lost its credential to the `//` of the scheme, reaching neither the demand
+    list nor the advisory one. A `//` preceded by `:` is a scheme.
+18. **Incidental digit runs demoted real keys.** `EXAMPLE_TOKEN` matched
+    `0000000`, `AAAAAAAA`, `1234567890` and `deadbeef` anywhere in a token, so a
+    genuine `sk_live_00000004Qh8xZ2mPqRsTuVwX` became a judgement call instead
+    of a demand. Only a word that says it is an example survives.
+19. **A bare PEM header in `docs/` forced a finding.** The "a header with no key
+    material is not a key" downgrade was gated on the file being a test, so any
+    README showing the format demanded an `L2-SEC-01`.
+20. **An emphasised severity escaped every check.** `One aside: **[BLOCKER]**
+    the auth check can be bypassed` mid-paragraph, and the same in `<b>` tags,
+    passed while reading to a human as exactly what they are. Position cannot
+    separate the reviewer's voice from quoted input; emphasis can. Blockquotes
+    are now read as input - quoting the PR is legitimate - and an emphasised
+    severity is a finding wherever it appears.
+21. **The recall claim was not in the scored artefact.** "A review that misses a
+    proven defect is a failed review" was asserted in `SKILL.md` and tested only
+    in `audit/regressions.py`. Two Eval Log cases now carry it: the same blind
+    `APPROVE` passes without `--diff` and fails with it.

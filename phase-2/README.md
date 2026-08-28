@@ -44,9 +44,9 @@ we remove the places where it could be inconsistent.
 
 ```
 $ for i in 1 2 3; do python release-archivist/scripts/classify.py release-archivist/evals/inputs/03-sprint42.log | md5sum; done
-ab2eca44da29875d7110d1cd2cc26f5d
-ab2eca44da29875d7110d1cd2cc26f5d
-ab2eca44da29875d7110d1cd2cc26f5d
+d29a32c9b5e1f02cd803d44f24191f28
+d29a32c9b5e1f02cd803d44f24191f28
+d29a32c9b5e1f02cd803d44f24191f28
 ```
 
 ### 2. They are independent
@@ -109,7 +109,7 @@ FAIL (6 violation(s))
 ## Eval Log
 
 Per-agent eval logs live at the bottom of each `SKILL.md`, as the brief requires.
-This is the combined view: **36 cases over 28 input files**, all green.
+This is the combined view: **38 cases over 29 input files**, all green.
 
 Corpus: real sprint artefacts from `service-alpha`, anonymised with a fixed
 substitution map (service names to `service-alpha`, people to first names,
@@ -151,9 +151,9 @@ repository where the whole loop is visible.
 
 ### Defects found and fixed
 
-Each agent's own list is in `<agent>/references/eval-deltas.md` — **36 in total**,
-12 in the Archivist, 8 in the Scribe, 16 in the Sentinel. Eleven were found by
-the build-time harness; the rest by **ten independent auditors across five
+Each agent's own list is in `<agent>/references/eval-deltas.md` — **43 in total**,
+14 in the Archivist, 8 in the Scribe, 21 in the Sentinel. Eleven were found by
+the build-time harness; the rest by **twelve independent auditors across six
 rounds**, each running in a clean context, blind to the others and forbidden from
 reading this project's own conclusions. Count them yourself: every check in
 `audit/regressions.py` carries the tag of the auditor that found it.
@@ -176,7 +176,7 @@ failed open.** A regex that did not match returned "clean" rather than
 to be caught.
 
 Every one is now a permanent test. `audit/regressions.py` reproduces them as
-**89 checks**, each tagged with the auditor and finding it descends from, so a
+**106 checks**, each tagged with the auditor and finding it descends from, so a
 failure names which defect returned rather than merely that something broke.
 
 ### Failure modes verified

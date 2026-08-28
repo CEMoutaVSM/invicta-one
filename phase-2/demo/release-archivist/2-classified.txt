@@ -1,4 +1,4 @@
-in=15 published=6 internal=4 suppressed=5 accounted=15 reconciles=YES
+in=15 published=7 internal=4 suppressed=4 accounted=15 reconciles=YES
 lines=15 (items=15 furniture=0 blank=0) lines_reconcile=YES
      1 FEATURE     R-10  feat(invoices): add bulk export to CSV for accountants PRO
      2 NOISE       R-01  Merge branch 'main' into feature/bulk-export
@@ -7,7 +7,7 @@ lines=15 (items=15 furniture=0 blank=0) lines_reconcile=YES
      5 NOISE       R-03  WIP dont merge
      6 INTERNAL    R-07  refactor: extract PeriodGuard from PostingService
      7 INTERNAL    R-06  bump nuget packages to latest minor
-     8 NOISE       R-02  Revert "Revert "feat: draft invoice autosave""
+ ?   8 FEATURE     R-02  Revert "Revert "feat: draft invoice autosave""
      9 IMPROVEMENT R-14  improve: reduce invoice list load time from 4s to 900ms PR
     10 NOISE       R-05  chore: update github action runner
  ?  11 IMPROVEMENT R-00  handle edge case in currency rounding
@@ -16,4 +16,4 @@ lines=15 (items=15 furniture=0 blank=0) lines_reconcile=YES
  ?  14 INTERNAL    R-07  docs: update README
     15 FEATURE     R-10  feat: allow bookkeepers to view but not post entries PROJ-
 
-Lines needing judgment: [11, 14]
+Lines needing judgment: [8, 11, 14]

@@ -165,8 +165,15 @@ def classify_one(text: str) -> tuple[str, str, str, bool]:
     # not say - so the line is classified from the subject it restores and handed
     # to the model rather than settled here.
     if m := REVERT_OF_REVERT.match(text):
-        inner = m.group("inner").strip() or text
-        cls, rid, reason, _ = classify_one(inner) if inner != text             else ("FEATURE", "R-02", "", False)
+        inner = m.group("inner").strip()
+        if not inner:
+            # `Revert "Revert ""` names nothing. Falling back to the whole
+            # line filed it as a FEATURE, and the validator then demanded a
+            # customer entry for a line that says nothing - an invented note
+            # extracted from garbage.
+            return ("NOISE", "R-02", "revert of a revert naming nothing - "
+                    "unreadable, so nothing is claimed", True)
+        cls, rid, reason, _ = classify_one(inner)
         # A restored chore is still a chore. Only a restored publishable change
         # is worth the model's attention.
         return (cls, "R-02",

@@ -163,33 +163,49 @@ def mask_fences(text: str) -> str:
     return "\n".join(out)
 
 
-# Ticket-shaped, minus the things that merely look it. The narrow list of known
-# prefixes that replaced this let `ACME-4521` leak with a clean bill of health.
-TICKET_SHAPE = re.compile(r"\b(?P<prefix>[A-Z][A-Z0-9]{1,9})-(?P<num>\d{1,6})\b")
-# Prefixes that name a standard, a measurement or a place - never a tracker.
-# `SLA-95` is a service level and `US-2026` is a year; both were reported as
-# leaked ticket keys in release prose that was entirely correct.
-NOT_TRACKERS = {
-    "SLA", "ISO", "RFC", "GDPR", "CVE", "PCI", "SOC", "ITIL", "IEEE", "ANSI",
-    "UTF", "SHA", "MD", "AES", "RSA", "TLS", "SSL", "HTTP", "API", "OKR", "KPI",
-    "EU", "US", "UK", "PT", "DK", "NO", "SE", "FI", "NL", "DE", "Q", "H", "V",
-    "FY", "IE", "COVID",
-}
+# Ticket-shaped. Shape alone is not enough in either direction: `PROJ-1234567`
+# leaked (the digit bound was too tight) while `RS-232 serial devices` was
+# rejected as a leak. What separates them is not the prefix but the context - a
+# pasted ticket key arrives announced, because whoever pasted it was pointing at
+# a tracker.
+TICKET_SHAPE = re.compile(r"\b(?P<prefix>[A-Z][A-Z0-9]{1,9})-(?P<num>\d{1,7})\b")
+# The announcement: a tracking word just before the key, or the key standing
+# alone inside brackets - `(ACME-4521)`, `[PROJ-2811]`.
+# Tracker words only. `fix`, `close` and `resolve` are the ordinary verbs of a
+# release note - `fixed RJ-45 detection`, `fixes DDR-4 timing` - and reading
+# them as announcements put hardware standards back on the leak list.
+ANNOUNCED = re.compile(
+    r"(?i)\b(track\w*|ticket|issue|bug|story|epic|task|card|"
+    r"ref\w*|see|jira|backlog)"
+    r"(?:\s+(?:as|in|to|at|by|for|under|via|on))?\W{0,4}$")
+# Years and service levels are never keys, announced or not.
+NOT_TRACKERS = {"SLA", "ISO", "RFC", "GDPR", "CVE", "PCI", "SOC", "ITIL",
+                "IEEE", "ANSI", "UTF", "SHA", "AES", "RSA", "TLS", "SSL",
+                "HTTP", "API", "OKR", "KPI", "EU", "US", "UK", "PT", "DK",
+                "NO", "SE", "FI", "NL", "DE", "FY", "IE", "COVID"}
 
 
 def ticket_keys_in(text: str) -> list[str]:
-    """Ticket keys by shape, for keys the ledger does not know about."""
+    """Ticket keys the ledger does not know about, announced as such."""
     out = []
     for m in TICKET_SHAPE.finditer(text):
         prefix, num = m.group("prefix"), m.group("num")
-        if prefix in NOT_TRACKERS:
-            continue
         if len(num) == 4 and 1900 <= int(num) <= 2100:
-            continue          # a year, not a ticket
+            continue                      # a year, not a ticket
+        before = text[max(0, m.start() - 24):m.start()]
+        opener = text[m.start() - 1:m.start()]
+        closer = text[m.end():m.end() + 1]
+        # ...or standing alone in brackets, with enough digits to be a ticket
+        # number rather than a standard: `[US-4521]` yes, `(RJ-45)` no.
+        announced = bool(ANNOUNCED.search(before)) or (
+            opener in "([" and closer in ")]" and len(num) >= 3)
+        if not announced:
+            continue
+        if prefix in NOT_TRACKERS and len(num) <= 2:
+            continue                      # SLA-95, KPI-77: a level, not a key
         if m.group(0) not in out:
             out.append(m.group(0))
     return out
-
 
 def ticket_keys_from_ledger(ledger: dict | None) -> list[str]:
     """The ticket keys this release actually touched.

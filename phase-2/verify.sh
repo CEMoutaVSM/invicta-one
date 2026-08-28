@@ -47,7 +47,7 @@ if [ "$rc" -ne 0 ]; then
 fi
 
 echo; echo "=== auditor regressions ==="
-# Every defect eight independent auditors found, reproduced as a test. The
+# Every defect ten independent auditors found, reproduced as a test. The
 # per-agent suites prove the agents work; these prove that a finding which was
 # fixed has not quietly come back.
 out=$( "$PY" audit/regressions.py 2>&1 ); rc=$?
@@ -55,6 +55,19 @@ printf '%s\n' "$out" | head -1
 if [ "$rc" -ne 0 ]; then
   fail=1
   printf '%s\n' "$out" | grep -E 'FAIL|REGRESSION' | sed 's/^/  /'
+fi
+
+echo; echo "=== embedded figures ==="
+# Numbers written into sentences. One classification change moved
+# published from 6 to 7 and left an md5 transcript, a coverage line, two
+# documents and the page's payload table stale at once.
+out=$( "$PY" audit/refresh_figures.py --check 2>&1 ); rc=$?
+printf '%s
+' "$out" | tail -1
+if [ "$rc" -ne 0 ]; then
+  fail=1
+  printf '%s
+' "$out" | sed 's/^/  /'
 fi
 
 echo; echo "=== eval logs ==="

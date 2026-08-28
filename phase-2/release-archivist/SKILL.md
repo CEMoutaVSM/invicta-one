@@ -74,7 +74,7 @@ fails.
 
 **Ask for `--brief`.** `python scripts/classify.py <log> --brief` emits only the
 decisions still open — the entries needing wording, the unclassified lines, and
-the ledger you must reproduce. It is about **67% smaller** than `--json` on a
+the ledger you must reproduce. It is about **59% smaller** than `--json` on a
 typical sprint log, because it stops shipping you the items already settled.
 
 **Every published entry names its source line.** End each customer-facing
@@ -128,7 +128,7 @@ commit, because both leave the total unchanged. Full format in
 ## Internal Changes
 - <infrastructure, refactors, tooling>
 
-<!-- Coverage: in=47 published=12 internal=8 suppressed=27 accounted=47 duplicates=0 -->
+<!-- Coverage: in=15 published=7 internal=4 suppressed=4 accounted=15 duplicates=0 -->
 ```
 
 The coverage comment is the audit trail. Reviewers reconcile it without reading the
@@ -168,7 +168,7 @@ And for a genuinely empty release — a valid, correct outcome:
 No customer-facing changes this period. This release contained
 infrastructure and maintenance work only.
 
-<!-- Coverage: in=12 published=0 internal=4 suppressed=8 accounted=12 duplicates=0 -->
+<!-- Coverage: in=15 published=7 internal=4 suppressed=4 accounted=15 duplicates=0 -->
 ```
 
 ## 9. Self-check
@@ -224,13 +224,13 @@ describe a case the suite does not run.
 
 ```
 $ for i in 1 2 3; do python scripts/classify.py evals/inputs/03-sprint42.log | md5sum; done
-ab2eca44da29875d7110d1cd2cc26f5d
-ab2eca44da29875d7110d1cd2cc26f5d
-ab2eca44da29875d7110d1cd2cc26f5d
+d29a32c9b5e1f02cd803d44f24191f28
+d29a32c9b5e1f02cd803d44f24191f28
+d29a32c9b5e1f02cd803d44f24191f28
 ```
 
 **Zero-loss verified, and made falsifiable.** Input 1:
-`in=15 published=6 internal=4 suppressed=5 accounted=15 reconciles=YES`.
+`in=15 published=7 internal=4 suppressed=4 accounted=15 reconciles=YES`.
 
 The honest caveat: the class buckets partition the items, so reconciling them
 against the item count is arithmetic that *cannot fail*. It said YES on inputs
@@ -245,4 +245,4 @@ a published entry is caught instead of reconciling perfectly against nothing.
 and a WIP commit. The agent emits the explicit *no customer-facing changes*
 notice rather than manufacturing content. Padding a thin release is a defect.
 
-**Deltas found and fixed.** 12 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.
+**Deltas found and fixed.** 14 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.

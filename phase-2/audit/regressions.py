@@ -639,12 +639,32 @@ def round_five() -> None:
     case("L-03", "a review may quote a severity word from the PR",
          c == 0, o.strip()[:200])
 
-    # ...while a severity that LEADS a quote is still smuggling.
-    smug = review + D(["", "> [BLOCKER] hidden, uncited", ""])
-    c, o = sh(VF, w("l3b.md", smug), "--today", "2026-08-06")
-    case("L-03b", "a severity leading a blockquote is still caught",
-         c == 1 and "blockquote" in o, o.strip()[:160])
+    # ...and a PR quote that OPENS with the tag is legitimate too. Position
+    # cannot separate the reviewer's voice from quoted input; emphasis can, so
+    # a blockquote is now read as input and L-03b's assertion was retired
+    # deliberately in favour of the four below.
+    lead = review + D(["", "> [BLOCKER] must land before the August release", ""])
+    c, o = sh(VF, w("l3b.md", lead), "--today", "2026-08-06")
+    case("N-05", "a PR quote may open with a severity tag", c == 0,
+         o.strip()[:200])
 
+    # N-4: an emphasised severity is the reviewer asserting one, wherever it
+    # sits. Mid-paragraph bold and <b> tags passed every check while reading to
+    # a human as exactly what they are.
+    for tag, body in (("bold", "One aside: **[BLOCKER]** the auth check can be "
+                               "bypassed."),
+                      ("html", "Note <b>[BLOCKER] SQL injection</b> here."),
+                      ("under", "Also __[MAJOR]__ the retry loop never exits.")):
+        c, o = sh(VF, w(f"n4-{tag}.md", review + D(["", body, ""])),
+                  "--today", "2026-08-06")
+        case(f"N-04-{tag}", f"an uncited severity in {tag} emphasis is caught",
+             c == 1, o.strip()[:160])
+
+    # ...and the shapes that were already caught stay caught.
+    c, o = sh(VF, w("n4-cell.md", review + D(["", "| [MAJOR] | x.cs | hidden |", ""])),
+              "--today", "2026-08-06")
+    case("N-04-cell", "a severity leading a table cell is still caught",
+         c == 1, o.strip()[:160])
     # L-4: reading keys from the ledger made the check exact, and blind to any
     # key the ledger had not heard of - which passed with a false all-clear.
     notes = (RA / "evals/inputs/valid-notes.md").read_text(encoding="utf-8")
@@ -715,6 +735,79 @@ def round_five() -> None:
              f"{agent} states as many defects as its delta log lists",
              bool(m) and int(m.group(1)) == n,
              f"SKILL says {m.group(1) if m else None}, log lists {n}")
+    # N-1: the quoted URL was fixed and the unquoted one was not. A .env, YAML
+    # or Dockerfile line lost its credential to the // of the scheme.
+    d = D(["--- a/.env", "+++ b/.env", "@@ -1,2 +1,3 @@",
+           "+DATABASE_URL=postgres://admin:prod-sk-9f8e12ab34@db.internal", ""])
+    c, o = sh(PD, w("n1.diff", d))
+    case("N-01", "a credential in an unquoted URL is demanded",
+         any(m["rule"] == "L2-SEC-01" for m in json.loads(o)["must_flag"]),
+         o[:200])
+
+    # N-2: EXAMPLE_TOKEN matched incidental runs, so a genuine key containing
+    # 0000000 was demoted from a demand to a judgement call.
+    for tag, lit in (("zeros", "sk_live_00000004Qh8xZ2mPqRsTuVwX"),
+                     ("digits", "AKIA1234567890ABCDEF")):
+        d = D(["--- a/src/P.cs", "+++ b/src/P.cs", "@@ -1,2 +1,3 @@",
+               '+var S = "' + lit + '";', ""])
+        c, o = sh(PD, w(f"n2-{tag}.diff", d))
+        case(f"N-02-{tag}", f"a real key containing {tag} is still demanded",
+             bool(json.loads(o)["must_flag"]), o[:200])
+
+    # N-3: the bare-header downgrade was gated on the file being a test, so the
+    # same header in docs/ forced a finding.
+    d = D(["--- a/docs/format.md", "+++ b/docs/format.md", "@@ -1,2 +1,3 @@",
+           "+-----BEGIN PRIVATE KEY-----", ""])
+    c, o = sh(PD, w("n3.diff", d))
+    case("N-03", "a bare PEM header in docs does not force a finding",
+         not json.loads(o)["must_flag"], o[:200])
+
+    # N-6/N-7: shape alone is wrong in both directions. A leaked key arrives
+    # announced; RS-232 is a noun phrase.
+    sys.path.insert(0, str(RA / "scripts"))
+    import importlib
+    vo = importlib.import_module("validate_output")
+    for tag, s, want in (
+            ("long", "see PROJ-1234567 for detail", True),
+            ("denied", "issue [US-4521] is closed", True),
+            ("serial", "Now supports RS-232 serial devices", False),
+            ("hw", "fixed RJ-45 detection and DDR-4 timing", False),
+            ("level", "meets SLA-95 under US-2026 rules", False)):
+        got = bool(vo.ticket_keys_in(s))
+        case(f"N-06-{tag}", f"ticket detection is right on: {s[:38]}",
+             got == want, f"flagged={got}, expected={want}")
+
+    # N-8: a malformed double revert became a phantom FEATURE the notes were
+    # then required to describe.
+    c, o = sh(RAC, w("n8.log", chr(82) + 'evert "Revert ""' + chr(10)), "--json")
+    it = json.loads(o)["items"][0]
+    case("N-08", "a revert naming nothing does not invent a feature",
+         it["class"] == "NOISE", it["class"])
+    # O-1: numbers written into sentences had no generator, so one
+    # classification change left an md5 transcript, a coverage line, two
+    # documents and the page's payload table stale at once.
+    c, o = sh(ROOT / "audit/refresh_figures.py", "--check")
+    case("O-01", "every figure embedded in prose matches the code",
+         c == 0, o.strip()[-300:])
+
+    # O-2: the recall claim - a review that MISSES a proven defect is a failed
+    # review - lived only in this file, not in the scored artefact. The same
+    # blind APPROVE must pass without --diff and fail with it.
+    blind = CS / "evals/inputs/adversarial-missed-defect.md"
+    c1, _ = sh(VF, blind, "--today", "2026-08-06")
+    pd = w("o2-parsed.json", sh(PD, CS / "evals/inputs/02-permissions.diff")[1])
+    c2, o = sh(VF, blind, "--diff", pd, "--today", "2026-08-06")
+    case("O-02", "a blind APPROVE passes alone and fails against the diff",
+         c1 == 0 and c2 == 1, f"without={c1} with={c2}")
+
+    # O-3: the demo's readable trace was written once by hand and then
+    # contradicted the JSON beside it for two rounds.
+    tbl = (ROOT / "demo/release-archivist/2-classified.txt").read_text(encoding="utf-8")
+    led = json.loads((ROOT / "demo/release-archivist/2-ledger.json")
+                     .read_text(encoding="utf-8"))
+    case("O-03", "the demo's readable trace agrees with its own ledger",
+         f"published={led['coverage']['published']}" in tbl,
+         f"ledger says {led['coverage']['published']}")
 
 def main() -> int:
     for fn in (sentinel_shapes, sentinel_precision, sentinel_recall,

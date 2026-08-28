@@ -521,7 +521,7 @@ $ validate_findings.py review-raising-that-complaint.md
     still open:</p>
     <div class="tw"><table>
       <thead><tr><th>Droid</th><th>Script</th><th>Full</th><th>Brief</th><th>Payload</th></tr></thead>
-      <tbody><tr><td><b>BB-8</b></td><td><code>classify.py</code></td><td class='n'>6,786</td><td class='n'>2,275</td><td class='n'><b>&minus;66%</b></td></tr><tr><td><b>R2-D2</b></td><td><code>parse_input.py</code></td><td class='n'>1,283</td><td class='n'>510</td><td class='n'><b>&minus;60%</b></td></tr><tr><td><b>C-3PO</b></td><td><code>parse_diff.py</code></td><td class='n'>1,473</td><td class='n'>1,233</td><td class='n'><b>&minus;16%</b></td></tr></tbody>
+      <tbody><tr><td><b>BB-8</b></td><td><code>classify.py</code></td><td class='n'>7,148</td><td class='n'>2,961</td><td class='n'><b>&minus;59%</b></td></tr><tr><td><b>R2-D2</b></td><td><code>parse_input.py</code></td><td class='n'>1,011</td><td class='n'>492</td><td class='n'><b>&minus;51%</b></td></tr><tr><td><b>C-3PO</b></td><td><code>parse_diff.py</code></td><td class='n'>1,590</td><td class='n'>1,260</td><td class='n'><b>&minus;21%</b></td></tr></tbody>
     </table></div>
     <p class="muted">Characters of JSON handed to the model, measured at build time on the fixtures
     on this page. Nothing needed was removed &mdash; what went was the part the instructions were
@@ -1081,11 +1081,11 @@ For src/onboarding/Saga.cs: no suppressions
   <div class="stack">
     <div class="rail">Where the confidence comes from</div>
     <h2>We sent auditors after our own droids</h2>
-    <p class="lede">Ten independent auditors across five rounds, each with a clean context, blind to the others and forbidden from reading our own notes on what we thought we had built. They were told to break it.</p>
+    <p class="lede">Twelve independent auditors across six rounds, each with a clean context, blind to the others and forbidden from reading our own notes on what we thought we had built. They were told to break it.</p>
   </div>
   <div class="grid3">
-    <div class="card accent" style="--c:var(--amber)"><div class="stat" style="color:var(--amber)">36</div><div class="stat-l">defects recorded against the agents &mdash; 11 by us, the rest by ten auditors</div></div>
-    <div class="card accent" style="--c:var(--sky)"><div class="stat" style="color:var(--sky)">36</div><div class="stat-l">eval cases, 12 gated against expected decisions</div></div>
+    <div class="card accent" style="--c:var(--amber)"><div class="stat" style="color:var(--amber)">38</div><div class="stat-l">defects recorded against the agents &mdash; 11 by us, the rest by twelve auditors</div></div>
+    <div class="card accent" style="--c:var(--sky)"><div class="stat" style="color:var(--sky)">38</div><div class="stat-l">eval cases, 12 gated against expected decisions</div></div>
     <div class="card accent" style="--c:var(--gold)"><div class="stat" style="color:var(--gold)">47</div><div class="stat-l">compliance checks, each written so it can actually fail</div></div>
     <div class="card accent" style="--c:var(--taco-green-300)"><div class="stat" style="color:var(--taco-green-300)">0</div><div class="stat-l">dependencies &mdash; Python standard library only</div></div>
   </div>
@@ -1108,7 +1108,7 @@ For src/onboarding/Saga.cs: no suppressions
       </ul>
     </div>
   </div>
-  <p style="font-weight:700">Publishing that list is the point. A tool nobody has attacked is a tool nobody has tested. Every one is now a permanent test case: <code>audit/regressions.py</code> holds 89 checks, each tagged with the auditor and finding it came from.</p>
+  <p style="font-weight:700">Publishing that list is the point. A tool nobody has attacked is a tool nobody has tested. Every one is now a permanent test case: <code>audit/regressions.py</code> holds 106 checks, each tagged with the auditor and finding it came from.</p>
 
   <div class="card">
     <h4>Checked against someone else&rsquo;s standard, too</h4>
@@ -1185,7 +1185,7 @@ $ tessl skill review --json release-archivist    &#8594;  reviewScore 90</pre>
 <div class="tw"><table><thead><tr><th>Decided by <code>scripts/</code> — never varies</th><th>Decided by you — the model</th></tr></thead><tbody><tr><td>Which lines are items, and which are furniture</td><td>The customer-facing wording of every published entry</td></tr><tr><td>Noise, internal and shipping classification for anything a rule matches</td><td>Any line the rules could not place — see below</td></tr><tr><td>The coverage ledger, duplicate detection, leak detection</td><td>Which of the low-confidence lines are genuinely customer-facing</td></tr></tbody></table></div>
 <p><strong>Why the split falls there.</strong> A regex is cheaper, faster and reproducible, and it is right about most of a sprint log — so the log is classified by rules and the result is auditable for free. But a regex has no idea what <code>handle edge case in currency rounding</code> means to an accountant. Rather than default those silently, <code>classify.py</code> reports them as <code>unclassified</code> and hands them to you as a bounded job.</p>
 <p><strong>You may reclassify only those lines.</strong> <code>validate_output.py</code> compares your published total against the classifier's and allows it to differ by at most the number of lines that were delegated. Move a settled classification and the run fails.</p>
-<p><strong>Ask for <code>--brief</code>.</strong> <code>python scripts/classify.py &lt;log&gt; --brief</code> emits only the decisions still open — the entries needing wording, the unclassified lines, and the ledger you must reproduce. It is about <strong>67% smaller</strong> than <code>--json</code> on a typical sprint log, because it stops shipping you the items already settled.</p>
+<p><strong>Ask for <code>--brief</code>.</strong> <code>python scripts/classify.py &lt;log&gt; --brief</code> emits only the decisions still open — the entries needing wording, the unclassified lines, and the ledger you must reproduce. It is about <strong>59% smaller</strong> than <code>--json</code> on a typical sprint log, because it stops shipping you the items already settled.</p>
 <p><strong>Every published entry names its source line.</strong> End each customer-facing bullet with <code>&lt;!-- src:N --&gt;</code>, where N is the input line it reports. The reader never sees it; the validator uses it to check <em>which</em> features shipped, not just how many. A count cannot tell a dropped feature from a published merge commit, because both leave the total unchanged. Full format in <code>references/output-contract.md</code>.</p>
 <h4>5. Operating rules</h4>
 <ol><li><strong>[script]</strong> <code>classify.py</code> → every input line labelled <code>FEATURE</code>, <code>FIX</code>, <code>IMPROVEMENT</code>, <code>INTERNAL</code> or <code>NOISE</code>, plus a reason and the coverage ledger.</li><li><strong>[rule]</strong> <strong>Every input line must be accounted for.</strong> Published or suppressed, with a reason. <code>items_in</code> must equal <code>items_accounted</code>. This is the zero-loss guarantee and it is checked by code, not by care.</li><li><strong>[judgment]</strong> Review the script's classification only for the items it marked <code>low_confidence</code>. Accept the rest. Overriding a confident classification requires noting it, because it is a source of variance.</li><li><strong>[judgment]</strong> Merge duplicates: a Jira ticket and its commits are <strong>one</strong> entry. Take the customer-facing wording from the ticket, never from the commit message.</li><li><strong>[judgment]</strong> Translate each published item using the L3 translation table. No component names, no ticket keys, no commit hashes in the customer-facing body.</li><li><strong>[rule]</strong> Group by customer impact, not by type: <strong>New</strong>, <strong>Improved</strong>, <strong>Fixed</strong>. Within each, order by breadth of impact.</li><li><strong>[rule]</strong> <code>INTERNAL</code> items are listed in a collapsed internal appendix, not published. <code>NOISE</code> is suppressed entirely but still counted.</li><li><strong>[rule]</strong> A sprint with no customer-facing change produces an explicit "no customer-facing changes" notice. <strong>Never manufacture content to fill the page.</strong></li><li><strong>[script]</strong> <code>validate_output.py</code> — fails if coverage does not reconcile or if a forbidden token (hash, ticket key, internal name) reaches the customer section.</li></ol>
@@ -1208,7 +1208,7 @@ $ tessl skill review --json release-archivist    &#8594;  reviewScore 90</pre>
 ## Internal Changes
 - &lt;infrastructure, refactors, tooling&gt;
 
-&lt;!-- Coverage: in=47 published=12 internal=8 suppressed=27 accounted=47 duplicates=0 --&gt;</code></pre>
+&lt;!-- Coverage: in=15 published=7 internal=4 suppressed=4 accounted=15 duplicates=0 --&gt;</code></pre>
 <p>The coverage comment is the audit trail. Reviewers reconcile it without reading the source log, and it is the artefact that makes "zero missing features" a checkable claim rather than a promise.</p>
 <h4>7. Constraints</h4>
 <p>The agent must <strong>never</strong>:</p>
@@ -1230,7 +1230,7 @@ Status: insufficient_input</code></pre>
 No customer-facing changes this period. This release contained
 infrastructure and maintenance work only.
 
-&lt;!-- Coverage: in=12 published=0 internal=4 suppressed=8 accounted=12 duplicates=0 --&gt;</code></pre>
+&lt;!-- Coverage: in=15 published=7 internal=4 suppressed=4 accounted=15 duplicates=0 --&gt;</code></pre>
 <h4>9. Self-check</h4>
 <ul><li>[ ] <code>items_in == items_accounted</code> — no silent drops</li><li>[ ] No hash, ticket key, branch name or internal component in customer sections</li><li>[ ] Every published item traceable to an input line</li><li>[ ] No item appears in two sections</li><li>[ ] Duplicates merged; each ticket appears at most once</li><li>[ ] Empty release stated plainly, not padded</li><li>[ ] <code>validate_output.py &lt;notes.md&gt; --ledger &lt;classify.py --json&gt;</code> exits 0. <strong>The <code>--ledger</code> is not optional.</strong> It is the zero-loss check. Without it the validator says so in as many words - it can confirm the notes are internally consistent, and nothing at all about whether a shipped feature was dropped.</li></ul>
 <h4>10. Composition (optional)</h4>
@@ -1242,16 +1242,16 @@ infrastructure and maintenance work only.
 <div class="tw"><table><thead><tr><th>#</th><th>Case</th><th>Runs</th><th>Output digest</th><th>Golden-gated</th><th>Result</th></tr></thead><tbody><tr><td>1</td><td><code>classify.py &lt;- 03-sprint42.log</code></td><td>3</td><td><code>a164a91f</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>2</td><td><code>classify.py &lt;- adversarial-all-noise.log</code></td><td>3</td><td><code>4348784e</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>3</td><td><code>classify.py &lt;- 05-empty.log (must refuse)</code></td><td>3</td><td><code>f1a327b5</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>4</td><td><code>classify.py &lt;- 03-sprint42.log --brief</code></td><td>3</td><td><code>03d5f762</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>5</td><td><code>validate_output.py &lt;- adversarial-missing-feature.md (+ledger)</code></td><td>3</td><td><code>3e37517a</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>6</td><td><code>validate_output.py &lt;- adversarial-undelegated-move.md (+ledger)</code></td><td>3</td><td><code>40549698</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>7</td><td><code>validate_output.py &lt;- valid-delegated.md (+ledger)</code></td><td>3</td><td><code>7e5c857c</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>8</td><td><code>validate_output.py &lt;- valid-notes.md (+ledger)</code></td><td>3</td><td><code>7e5c857c</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>9</td><td><code>validate_output.py &lt;- valid-refusal.md</code></td><td>3</td><td><code>b090395d</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>10</td><td><code>validate_output.py &lt;- adversarial-leaky-notes.md</code></td><td>3</td><td><code>c220512d</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>11</td><td><code>validate_output.py &lt;- adversarial-missing-feature.md</code></td><td>3</td><td><code>9709183a</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>12</td><td><code>validate_output.py &lt;- adversarial-leak-only.md</code></td><td>3</td><td><code>25ba3b6d</code> x3</td><td>—</td><td>PASS</td></tr></tbody></table></div>
 <p><strong>12/12 passed.</strong></p>
 <pre><code>$ for i in 1 2 3; do python scripts/classify.py evals/inputs/03-sprint42.log | md5sum; done
-ab2eca44da29875d7110d1cd2cc26f5d
-ab2eca44da29875d7110d1cd2cc26f5d
-ab2eca44da29875d7110d1cd2cc26f5d</code></pre>
-<p><strong>Zero-loss verified, and made falsifiable.</strong> Input 1: <code>in=15 published=6 internal=4 suppressed=5 accounted=15 reconciles=YES</code>.</p>
+d29a32c9b5e1f02cd803d44f24191f28
+d29a32c9b5e1f02cd803d44f24191f28
+d29a32c9b5e1f02cd803d44f24191f28</code></pre>
+<p><strong>Zero-loss verified, and made falsifiable.</strong> Input 1: <code>in=15 published=7 internal=4 suppressed=4 accounted=15 reconciles=YES</code>.</p>
 <p>The honest caveat: the class buckets partition the items, so reconciling them against the item count is arithmetic that <em>cannot fail</em>. It said YES on inputs where shipped features had already been dropped before counting began, because a line that never became an item was never counted. The ledger therefore starts at the <strong>line</strong>: <code>lines_in == items + furniture + blank</code>, with every skipped line named and a reason attached. That identity can fail, and case 7 makes the other half fail too — the note body is counted against the ledger's claim, so deleting a published entry is caught instead of reconciling perfectly against nothing.</p>
 <p><strong>Failure mode verified.</strong> Input 2 contains only merges, typo fixes, a lint bump and a WIP commit. The agent emits the explicit <em>no customer-facing changes</em> notice rather than manufacturing content. Padding a thin release is a defect.</p>
-<p><strong>Deltas found and fixed.</strong> 12 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in <code>references/eval-deltas.md</code>.</p></div><div class="dpane" data-p="bb8" data-t="contract"><h3>Eval deltas — release-archivist</h3>
+<p><strong>Deltas found and fixed.</strong> 14 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in <code>references/eval-deltas.md</code>.</p></div><div class="dpane" data-p="bb8" data-t="contract"><h3>Eval deltas — release-archivist</h3>
 <p>Every defect the harness or an auditor found in this agent, and what changed because of it. Kept out of <code>SKILL.md</code> so the file the model loads on every run carries instructions rather than history.</p>
 <p><strong>Deltas found and fixed.</strong></p>
-<ol><li><strong><code>add regression test for session timeout</code> classified <code>FEATURE</code>.</strong> Rule R-11 matched the verb <em>add</em> before any test rule existed. The ledger still reconciled — the item went into the <em>wrong bucket</em>, not into nothing — which is exactly the error a coverage count alone cannot catch. Added R-09b.</li><li><strong>The zero-loss guarantee was a tautology.</strong> Fuzzing 40,000 inputs produced zero failures, because the identity checked was true by construction. See above: the ledger now reconciles against the raw line count.</li><li><strong>Six shipped features vanished into NOISE.</strong> Token heuristics ran ahead of conventional-commit prefixes, so <code>feat: add dashboard widget</code> was classified INTERNAL on the word <em>dashboard</em> — silently, with no low-confidence flag. <code>feat:</code> / <code>fix:</code> / <code>chore:</code> / <code>refactor:</code> now win first, and anything buried by a token rule while carrying a capability verb is flagged for human judgment.</li><li><strong>Jira CSV rows were not items at all.</strong> A row with no spaces failed the two-word test and was dropped before classification: six shipped items reported as <code>in=3 … reconciles=YES</code>. Lines are now counted first and classified second, and a line carrying a ticket key is always an item.</li><li><strong>The refusal marker was a skeleton key.</strong> Any document containing <code>Status: insufficient_input</code> skipped every check including leak detection, so notes leaking a commit hash and a ticket key passed clean.</li><li><strong><code>&lt;!-- INTERNAL</code> on line 1 emptied the customer section.</strong> <code>customer_section</code> splits on the marker and takes the first part; with the marker first, every leak check silently inspected an empty string.</li><li><strong>The leak list was a hardcoded copy of L3.</strong> Nine internal names were duplicated from the translation table in <code>context/L3-project.md</code>, guaranteed to drift the first time L3 grew. The validator reads the table directly.</li><li><strong>Two validators were non-deterministic.</strong> Leak findings were emitted from an unordered set: twelve runs produced twelve different outputs. Sorted.</li><li><strong><code>classify.py --json</code> returned 0 on a broken ledger</strong>, so a pipeline could consume a lossy classification and never know.</li><li><strong>The Eval Log described a fixture that did not exist.</strong> Row 3 claimed a leaky-notes input with "4/4 caught"; the third input was a clean file. The fixture now exists and is case 6.</li><li><strong>A ticket key leaked with a clean bill of health.</strong> Reading keys from the classifier ledger made the check exact and therefore blind: <code>(tracked as ACME-4521)</code> is plainly a ticket key, was not in this release's log, and printed <code>no internal tokens leaked</code>. Silence would have been better than a false all-clear. Shape detection is back alongside the ledger, without the part that made it wrong — <code>SLA-95</code> is a service level and <code>US-2026</code> a year.</li><li><strong>A revert of a revert shipped a feature to nobody.</strong> R-02 called it "net zero", which is backwards: reverting a revert re-applies the change. The flagship demo log ships <code>draft invoice autosave</code> that way; it was filed NOISE, accounted for, suppressed, never mentioned, and every check stayed green — the zero-loss guarantee reduced to line accounting. It is now classified from the subject it restores and handed to the model, because whether it is new <em>to customers</em> is not something the log can settle.</li></ol><hr><h3>Output Contract — Release Archivist</h3>
+<ol><li><strong><code>add regression test for session timeout</code> classified <code>FEATURE</code>.</strong> Rule R-11 matched the verb <em>add</em> before any test rule existed. The ledger still reconciled — the item went into the <em>wrong bucket</em>, not into nothing — which is exactly the error a coverage count alone cannot catch. Added R-09b.</li><li><strong>The zero-loss guarantee was a tautology.</strong> Fuzzing 40,000 inputs produced zero failures, because the identity checked was true by construction. See above: the ledger now reconciles against the raw line count.</li><li><strong>Six shipped features vanished into NOISE.</strong> Token heuristics ran ahead of conventional-commit prefixes, so <code>feat: add dashboard widget</code> was classified INTERNAL on the word <em>dashboard</em> — silently, with no low-confidence flag. <code>feat:</code> / <code>fix:</code> / <code>chore:</code> / <code>refactor:</code> now win first, and anything buried by a token rule while carrying a capability verb is flagged for human judgment.</li><li><strong>Jira CSV rows were not items at all.</strong> A row with no spaces failed the two-word test and was dropped before classification: six shipped items reported as <code>in=3 … reconciles=YES</code>. Lines are now counted first and classified second, and a line carrying a ticket key is always an item.</li><li><strong>The refusal marker was a skeleton key.</strong> Any document containing <code>Status: insufficient_input</code> skipped every check including leak detection, so notes leaking a commit hash and a ticket key passed clean.</li><li><strong><code>&lt;!-- INTERNAL</code> on line 1 emptied the customer section.</strong> <code>customer_section</code> splits on the marker and takes the first part; with the marker first, every leak check silently inspected an empty string.</li><li><strong>The leak list was a hardcoded copy of L3.</strong> Nine internal names were duplicated from the translation table in <code>context/L3-project.md</code>, guaranteed to drift the first time L3 grew. The validator reads the table directly.</li><li><strong>Two validators were non-deterministic.</strong> Leak findings were emitted from an unordered set: twelve runs produced twelve different outputs. Sorted.</li><li><strong><code>classify.py --json</code> returned 0 on a broken ledger</strong>, so a pipeline could consume a lossy classification and never know.</li><li><strong>The Eval Log described a fixture that did not exist.</strong> Row 3 claimed a leaky-notes input with "4/4 caught"; the third input was a clean file. The fixture now exists and is case 6.</li><li><strong>A ticket key leaked with a clean bill of health.</strong> Reading keys from the classifier ledger made the check exact and therefore blind: <code>(tracked as ACME-4521)</code> is plainly a ticket key, was not in this release's log, and printed <code>no internal tokens leaked</code>. Silence would have been better than a false all-clear. Shape detection is back alongside the ledger, without the part that made it wrong — <code>SLA-95</code> is a service level and <code>US-2026</code> a year.</li><li><strong>A revert of a revert shipped a feature to nobody.</strong> R-02 called it "net zero", which is backwards: reverting a revert re-applies the change. The flagship demo log ships <code>draft invoice autosave</code> that way; it was filed NOISE, accounted for, suppressed, never mentioned, and every check stayed green — the zero-loss guarantee reduced to line accounting. It is now classified from the subject it restores and handed to the model, because whether it is new <em>to customers</em> is not something the log can settle.</li><li><strong>Shape alone was wrong in both directions.</strong> <code>PROJ-1234567</code> leaked (the digit bound was too tight) while <code>RS-232 serial devices</code>, <code>RJ-45</code> and <code>RTX-4090</code> in genuine release prose were rejected as leaked ticket keys - and a validator that rejects correct notes is switched off as fast as one that misses leaks. A pasted key arrives announced (<code>tracked as ACME-4521</code>); a standard is a noun phrase. Ledger keys remain exact and unconditional.</li><li><strong>A malformed double revert invented a feature.</strong> <code>Revert "Revert ""</code> names nothing, fell through to the whole-line fallback, and was filed FEATURE - after which the validator demanded a customer entry for it, extracting an invented note from a garbage line.</li></ol><hr><h3>Output Contract — Release Archivist</h3>
 <p>Loaded on demand by SKILL.md §6. Normative.</p>
 <h4>Sections</h4>
 <p><code>H1 title</code> → one-sentence summary → <code>Breaking Changes</code> (only if any) → <code>New</code> → <code>Improved</code> → <code>Fixed</code> → internal appendix → coverage comment</p>
@@ -1284,7 +1284,7 @@ ab2eca44da29875d7110d1cd2cc26f5d</code></pre>
 <h5>DEV-010 — Compliance changes are published even when internal-only</h5>
 <p>Status: accepted | Owner: @product-owner-a | Reviewed: 2026-Q3 Rationale: Customers' auditors ask for evidence of regulatory changes. Agent behaviour: items matching "compliance", "SAF-T", "e-invoicing" or a regulation name are published even if classified INTERNAL. Expires: 2027-06</p>
 <h5>DEV-011 — Dependency bumps published when they close a public CVE</h5>
-<p>Status: accepted | Owner: @security-lead | Reviewed: 2026-Q3 Rationale: Customers run vulnerability scanners against our published notes. Agent behaviour: INTERNAL items citing a CVE identifier are published under Fixed as a security improvement, without exploit detail. Expires: 2027-06</p></div><div class="dpane" data-p="bb8" data-t="code"><p class='muted'>Every mechanical decision this agent makes lives here. No file in this folder calls a model.</p><details class="filed"><summary><span class="fn">classify.py</span><span class="fd">Deterministic classifier and coverage ledger for the Release Archivist.</span><span class="fl">416 lines</span></summary><pre><code>#!/usr/bin/env python3
+<p>Status: accepted | Owner: @security-lead | Reviewed: 2026-Q3 Rationale: Customers run vulnerability scanners against our published notes. Agent behaviour: INTERNAL items citing a CVE identifier are published under Fixed as a security improvement, without exploit detail. Expires: 2027-06</p></div><div class="dpane" data-p="bb8" data-t="code"><p class='muted'>Every mechanical decision this agent makes lives here. No file in this folder calls a model.</p><details class="filed"><summary><span class="fn">classify.py</span><span class="fd">Deterministic classifier and coverage ledger for the Release Archivist.</span><span class="fl">423 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Deterministic classifier and coverage ledger for the Release Archivist.
 
 Every input line is accounted for exactly once, with a reason. The ledger
@@ -1451,8 +1451,15 @@ def classify_one(text: str) -&gt; tuple[str, str, str, bool]:
     # not say - so the line is classified from the subject it restores and handed
     # to the model rather than settled here.
     if m := REVERT_OF_REVERT.match(text):
-        inner = m.group("inner").strip() or text
-        cls, rid, reason, _ = classify_one(inner) if inner != text             else ("FEATURE", "R-02", "", False)
+        inner = m.group("inner").strip()
+        if not inner:
+            # `Revert "Revert ""` names nothing. Falling back to the whole
+            # line filed it as a FEATURE, and the validator then demanded a
+            # customer entry for a line that says nothing - an invented note
+            # extracted from garbage.
+            return ("NOISE", "R-02", "revert of a revert naming nothing - "
+                    "unreadable, so nothing is claimed", True)
+        cls, rid, reason, _ = classify_one(inner)
         # A restored chore is still a chore. Only a restored publishable change
         # is worth the model's attention.
         return (cls, "R-02",
@@ -1861,7 +1868,7 @@ def main() -&gt; int:
 
 if __name__ == "__main__":
     sys.exit(main())
-</code></pre></details><details class="filed"><summary><span class="fn">validate_output.py</span><span class="fd">Contract validator for the Release Archivist.</span><span class="fl">500 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">validate_output.py</span><span class="fd">Contract validator for the Release Archivist.</span><span class="fl">516 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Contract validator for the Release Archivist.
 
 Three things the model is not trusted on: the coverage ledger reconciling,
@@ -2026,33 +2033,49 @@ def mask_fences(text: str) -&gt; str:
     return "\n".join(out)
 
 
-# Ticket-shaped, minus the things that merely look it. The narrow list of known
-# prefixes that replaced this let `ACME-4521` leak with a clean bill of health.
-TICKET_SHAPE = re.compile(r"\b(?P&lt;prefix&gt;[A-Z][A-Z0-9]{1,9})-(?P&lt;num&gt;\d{1,6})\b")
-# Prefixes that name a standard, a measurement or a place - never a tracker.
-# `SLA-95` is a service level and `US-2026` is a year; both were reported as
-# leaked ticket keys in release prose that was entirely correct.
-NOT_TRACKERS = {
-    "SLA", "ISO", "RFC", "GDPR", "CVE", "PCI", "SOC", "ITIL", "IEEE", "ANSI",
-    "UTF", "SHA", "MD", "AES", "RSA", "TLS", "SSL", "HTTP", "API", "OKR", "KPI",
-    "EU", "US", "UK", "PT", "DK", "NO", "SE", "FI", "NL", "DE", "Q", "H", "V",
-    "FY", "IE", "COVID",
-}
+# Ticket-shaped. Shape alone is not enough in either direction: `PROJ-1234567`
+# leaked (the digit bound was too tight) while `RS-232 serial devices` was
+# rejected as a leak. What separates them is not the prefix but the context - a
+# pasted ticket key arrives announced, because whoever pasted it was pointing at
+# a tracker.
+TICKET_SHAPE = re.compile(r"\b(?P&lt;prefix&gt;[A-Z][A-Z0-9]{1,9})-(?P&lt;num&gt;\d{1,7})\b")
+# The announcement: a tracking word just before the key, or the key standing
+# alone inside brackets - `(ACME-4521)`, `[PROJ-2811]`.
+# Tracker words only. `fix`, `close` and `resolve` are the ordinary verbs of a
+# release note - `fixed RJ-45 detection`, `fixes DDR-4 timing` - and reading
+# them as announcements put hardware standards back on the leak list.
+ANNOUNCED = re.compile(
+    r"(?i)\b(track\w*|ticket|issue|bug|story|epic|task|card|"
+    r"ref\w*|see|jira|backlog)"
+    r"(?:\s+(?:as|in|to|at|by|for|under|via|on))?\W{0,4}$")
+# Years and service levels are never keys, announced or not.
+NOT_TRACKERS = {"SLA", "ISO", "RFC", "GDPR", "CVE", "PCI", "SOC", "ITIL",
+                "IEEE", "ANSI", "UTF", "SHA", "AES", "RSA", "TLS", "SSL",
+                "HTTP", "API", "OKR", "KPI", "EU", "US", "UK", "PT", "DK",
+                "NO", "SE", "FI", "NL", "DE", "FY", "IE", "COVID"}
 
 
 def ticket_keys_in(text: str) -&gt; list[str]:
-    """Ticket keys by shape, for keys the ledger does not know about."""
+    """Ticket keys the ledger does not know about, announced as such."""
     out = []
     for m in TICKET_SHAPE.finditer(text):
         prefix, num = m.group("prefix"), m.group("num")
-        if prefix in NOT_TRACKERS:
-            continue
         if len(num) == 4 and 1900 &lt;= int(num) &lt;= 2100:
-            continue          # a year, not a ticket
+            continue                      # a year, not a ticket
+        before = text[max(0, m.start() - 24):m.start()]
+        opener = text[m.start() - 1:m.start()]
+        closer = text[m.end():m.end() + 1]
+        # ...or standing alone in brackets, with enough digits to be a ticket
+        # number rather than a standard: `[US-4521]` yes, `(RJ-45)` no.
+        announced = bool(ANNOUNCED.search(before)) or (
+            opener in "([" and closer in ")]" and len(num) &gt;= 3)
+        if not announced:
+            continue
+        if prefix in NOT_TRACKERS and len(num) &lt;= 2:
+            continue                      # SLA-95, KPI-77: a level, not a key
         if m.group(0) not in out:
             out.append(m.group(0))
     return out
-
 
 def ticket_keys_from_ledger(ledger: dict | None) -&gt; list[str]:
     """The ticket keys this release actually touched.
@@ -2430,7 +2453,7 @@ if __name__ == "__main__":
 <div class="tw"><table><thead><tr><th>Decided by <code>scripts/</code> — never varies</th><th>Decided by you — the model</th></tr></thead><tbody><tr><td>Filler stripping, speaker removal, segmentation</td><td>The acceptance criteria, and their Given-When-Then form</td></tr><tr><td>Whether actor, action and outcome are present</td><td>Edge cases nobody in the room mentioned</td></tr><tr><td>Whether several glossary actors are in play</td><td>Which unanswered question is worth blocking on</td></tr><tr><td>Every figure that was actually stated</td><td>The title, the context, the technical hints</td></tr></tbody></table></div>
 <p><strong>Why the split falls there.</strong> Extraction has a right answer and no judgement in it, so a script does it and the result is identical every run. Writing a criterion that is independently testable is judgement, and no rule produces it.</p>
 <p><strong>Refusal is not yours to override.</strong> If <code>missing_fields</code> is non-empty or <code>actor_ambiguous</code> is true, the correct output is the failure mode in §8. That is a successful run.</p>
-<p><strong>Ask for <code>--brief</code>.</strong> <code>python scripts/parse_input.py &lt;file&gt; --brief</code> drops the cleaned transcript and the raw digit list — you already have the input — and keeps what you cannot derive: what is missing, what is ambiguous, and which figures were genuinely stated. About <strong>60% smaller</strong> than the full envelope.</p>
+<p><strong>Ask for <code>--brief</code>.</strong> <code>python scripts/parse_input.py &lt;file&gt; --brief</code> drops the cleaned transcript and the raw digit list — you already have the input — and keeps what you cannot derive: what is missing, what is ambiguous, and which figures were genuinely stated. About <strong>51% smaller</strong> than the full envelope.</p>
 <h4>5. Operating rules</h4>
 <ol><li><strong>[script]</strong> Run <code>parse_input.py</code>. Obtain segments, candidate fields, <code>missing_fields</code>.</li><li><strong>[judgment]</strong> Identify the <em>actor</em>. Must be a role that exists in the L3 glossary, or a role explicitly named in the input. If neither → <code>MISSING: actor</code>.</li><li><strong>[judgment]</strong> Identify the <em>action</em> and the <em>outcome</em> — what the user does, and the value they get. Outcome is not the same as implementation.</li><li><strong>[rule]</strong> If actor, action or outcome is missing → <strong>do not infer it.</strong> Emit the <code>MISSING</code> marker and a specific clarifying question in Open Questions.</li></ol>
 <p>4b. <strong>[rule]</strong> If <code>parse_input.py</code> reports <code>actor_ambiguous</code>, several glossary roles appear in the input and <strong>the agent must not choose between them.</strong> List the candidates in Open Questions and ask. A transcript saying "accountants yes, bookkeepers no" mentions both roles while being about only one of them; picking the wrong actor silently inverts the entire story.</p>
@@ -3330,18 +3353,18 @@ Status: insufficient_input</code></pre>
 <h4>Eval Log</h4>
 <p>Corpus: the fixtures in <code>evals/inputs/</code>, from <code>service-alpha</code>, anonymised. Reproduce with <code>python scripts/run_evals.py</code>. Date: 2026-08-07.</p>
 <p>Each case asserts <strong>three</strong> things: the expected exit code, byte-identical output across 3 runs, and — where a golden file exists — an exact match on the recorded <em>decisions</em>. This table is generated by <code>audit/refresh_eval_logs.py</code> from the runner's own output, and <code>verify.sh</code> fails if it ever stops matching a fresh run, so it cannot describe a case the suite does not run.</p>
-<div class="tw"><table><thead><tr><th>#</th><th>Case</th><th>Runs</th><th>Output digest</th><th>Golden-gated</th><th>Result</th></tr></thead><tbody><tr><td>1</td><td><code>parse_diff.py &lt;- 02-permissions.diff</code></td><td>3</td><td><code>96779480</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>2</td><td><code>parse_diff.py &lt;- 04-mixed-format.diff</code></td><td>3</td><td><code>da927fe6</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>3</td><td><code>parse_diff.py &lt;- 06-empty.diff (must refuse)</code></td><td>3</td><td><code>897c887d</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>4</td><td><code>parse_diff.py &lt;- 02-permissions.diff --brief</code></td><td>3</td><td><code>1f57db0a</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>5</td><td><code>validate_findings.py &lt;- valid-review.md (+brief diff)</code></td><td>3</td><td><code>a0230a86</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>6</td><td><code>load_rules.py &lt;- context/</code></td><td>3</td><td><code>af08522f</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>7</td><td><code>load_rules.py &lt;- NO CONTEXT (must refuse)</code></td><td>3</td><td><code>90ca2772</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>8</td><td><code>validate_findings.py &lt;- valid-review.md (+diff)</code></td><td>3</td><td><code>a0230a86</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>9</td><td><code>validate_findings.py &lt;- valid-refusal.md</code></td><td>3</td><td><code>a0230a86</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>10</td><td><code>validate_findings.py &lt;- adversarial-uncited-review.md</code></td><td>3</td><td><code>12e52792</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>11</td><td><code>validate_findings.py &lt;- adversarial-verdict-contradiction.md</code></td><td>3</td><td><code>146f121d</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>12</td><td><code>validate_findings.py &lt;- adversarial-refusal-bypass.md</code></td><td>3</td><td><code>2e58312a</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>13</td><td><code>validate_findings.py &lt;- adversarial-style-only.md</code></td><td>3</td><td><code>45f07af9</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>14</td><td><code>validate_findings.py &lt;- adversarial-uncited-only.md</code></td><td>3</td><td><code>0fa02512</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>15</td><td><code>load_rules.py &lt;- expected-suppressions.json</code></td><td>3</td><td>deterministic</td><td>yes</td><td>PASS</td></tr></tbody></table></div>
-<p><strong>15/15 passed.</strong></p>
-<p><strong>Both directions are tested.</strong> Case 7 proves the agent cannot say what it cannot cite. Case 5 proves the opposite and harder thing: a review that <em>misses</em> a defect the parser already proved is a failed review. Given the same diff, a blind <code>APPROVE — no findings</code> now fails with <code>MISSED: 1 new branch with 0 test files touched, but no finding cites L2-TEST-01</code>. Precision without recall is a reviewer that approves everything and is never wrong.</p>
+<div class="tw"><table><thead><tr><th>#</th><th>Case</th><th>Runs</th><th>Output digest</th><th>Golden-gated</th><th>Result</th></tr></thead><tbody><tr><td>1</td><td><code>parse_diff.py &lt;- 02-permissions.diff</code></td><td>3</td><td><code>96779480</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>2</td><td><code>parse_diff.py &lt;- 04-mixed-format.diff</code></td><td>3</td><td><code>da927fe6</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>3</td><td><code>parse_diff.py &lt;- 06-empty.diff (must refuse)</code></td><td>3</td><td><code>897c887d</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>4</td><td><code>parse_diff.py &lt;- 02-permissions.diff --brief</code></td><td>3</td><td><code>1f57db0a</code> x3</td><td>yes</td><td>PASS</td></tr><tr><td>5</td><td><code>validate_findings.py &lt;- valid-review.md (+brief diff)</code></td><td>3</td><td><code>a0230a86</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>6</td><td><code>load_rules.py &lt;- context/</code></td><td>3</td><td><code>af08522f</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>7</td><td><code>load_rules.py &lt;- NO CONTEXT (must refuse)</code></td><td>3</td><td><code>90ca2772</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>8</td><td><code>validate_findings.py &lt;- valid-review.md (+diff)</code></td><td>3</td><td><code>a0230a86</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>9</td><td><code>validate_findings.py &lt;- adversarial-missed-defect.md (no diff, passes)</code></td><td>3</td><td><code>a0230a86</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>10</td><td><code>validate_findings.py &lt;- adversarial-missed-defect.md (+diff, must fail)</code></td><td>3</td><td><code>4b8519a0</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>11</td><td><code>validate_findings.py &lt;- valid-refusal.md</code></td><td>3</td><td><code>a0230a86</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>12</td><td><code>validate_findings.py &lt;- adversarial-uncited-review.md</code></td><td>3</td><td><code>12e52792</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>13</td><td><code>validate_findings.py &lt;- adversarial-verdict-contradiction.md</code></td><td>3</td><td><code>146f121d</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>14</td><td><code>validate_findings.py &lt;- adversarial-refusal-bypass.md</code></td><td>3</td><td><code>2e58312a</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>15</td><td><code>validate_findings.py &lt;- adversarial-style-only.md</code></td><td>3</td><td><code>45f07af9</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>16</td><td><code>validate_findings.py &lt;- adversarial-uncited-only.md</code></td><td>3</td><td><code>0fa02512</code> x3</td><td>—</td><td>PASS</td></tr><tr><td>17</td><td><code>load_rules.py &lt;- expected-suppressions.json</code></td><td>3</td><td>deterministic</td><td>yes</td><td>PASS</td></tr></tbody></table></div>
+<p><strong>17/17 passed.</strong></p>
+<p><strong>Both directions are tested.</strong> Case 12 proves the agent cannot say what it cannot cite. Cases 9 and 10 prove the opposite and harder thing: the same blind <code>APPROVE</code> passes without <code>--diff</code> and fails with it, because a review that <em>misses</em> a defect the parser proved is there is a failed review, not a lenient one.</p>
 <p><strong>Calibration verified.</strong> On input 1 the diff touches <code>legacy/billing/</code>, where a controller calls a repository directly — a real <code>L3-ARCH-01</code> violation that <code>DEV-004</code> declares intentional. The agent stays silent and says so under <em>Suppressed by Project Context</em>, while still flagging the genuine defect: authorisation decided by a client-supplied flag (<code>L2-SEC-05</code>).</p>
 <p><strong>Deviation expiry verified.</strong> <code>DEV-006</code> expired 2026-06. The agent resumed flagging <code>L3-EVENT-01</code> on <code>src/onboarding</code> with no human involvement. The calibration layer has a clock, so the registry cannot rot into a list of excuses.</p>
-<p><strong>Deltas found and fixed.</strong> 16 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in <code>references/eval-deltas.md</code>.</p></div><div class="dpane" data-p="c3po" data-t="contract"><h3>Calibration — adopting this agent on a new project</h3>
+<p><strong>Deltas found and fixed.</strong> 21 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in <code>references/eval-deltas.md</code>.</p></div><div class="dpane" data-p="c3po" data-t="contract"><h3>Calibration — adopting this agent on a new project</h3>
 <p>The reason a generic reviewer fails is that it does not know which deviations are deliberate. Fix that in four steps:</p>
 <ol><li><strong>Bootstrap</strong> — <code>python scripts/bootstrap_context.py &lt;repo&gt;</code> drafts <code>L3-project.md</code> from the README, ADRs, folder structure and the human comments on recent merged PRs. Every inferred rule is written with a confidence level and the evidence behind it.</li><li><strong>Ratify</strong> — a tech lead corrects the draft. <strong>The agent cannot ratify its own context.</strong> Rules left as <code>draft</code> stay dormant.</li><li><strong>Shadow</strong> — run advisory-only for one sprint. Humans tag findings <code>useful</code> / <code>noise</code> / <code>missed</code>.</li><li><strong>Learn</strong> — each <code>noise</code> becomes a deviation entry or a rule correction; each <code>missed</code> becomes a candidate rule. Re-run the golden set after every context change to confirm you removed a false positive without losing a true one.</li></ol>
 <p>Promote from advisory to required check once precision ≥ 80% on the golden set.</p><hr><h3>Eval deltas — code-sentinel</h3>
 <p>Every defect the harness or an auditor found in this agent, and what changed because of it. Kept out of <code>SKILL.md</code> so the file the model loads on every run carries instructions rather than history.</p>
 <p><strong>Deltas found and fixed.</strong></p>
-<ol><li><strong>Silent no-op.</strong> With <code>context/</code> absent, the loader reported mode <code>L2-only</code> while loading zero rules: the agent would review nothing, find nothing, and return a clean result. Now <code>NO-CONTEXT</code>, <code>FATAL</code>, exit 3 (case 4).</li><li><strong>The same failure, one layer down.</strong> A context file that <em>existed</em> but parsed to zero rows — a missing trailing pipe was enough — silently dropped all 12 org security rules with <code>usable=True</code> and no warning. An unparseable context is now a CONFIG error, not a smaller rule set.</li><li><strong>Draft rules were only dormant if spelled exactly <code>draft</code>.</strong> <code>draft (pending ADR-012)</code>, <code>not-ratified</code> and <code>DRAFT — do not use</code> all loaded as <strong>active</strong>, and findings citing them validated clean. Any provisional wording is now dormant, and an unrecognised status fails safe to dormant.</li><li><strong>A deviation nobody could read still silenced a rule.</strong> <code>Expires: TBD</code>, a blank expiry or <code>2027-6</code> left the suppression active forever. A deviation is only honoured when its expiry and target both parse.</li><li><strong>Suppression depended on path shape.</strong> <code>fnmatch</code> is case-insensitive on Windows and case-sensitive elsewhere, and <code>a/src/…</code> — the form a git diff actually emits — matched nothing. Paths are normalised and matched case-sensitively on every platform.</li><li><strong>The refusal marker was a skeleton key.</strong> Any review containing <code>Status: insufficient_input</code> skipped every check: a document with <code>APPROVE</code>, three BLOCKERs, severity <code>CATASTROPHIC</code>, an invented rule ID and a suppressed path passed clean (case 9).</li><li><strong><code>####</code> made a finding invisible.</strong> Findings were matched at <code>###</code> exactly, so one extra <code>#</code> removed a finding from validation entirely. Any heading depth is now parsed, and finding-shaped bold text is rejected rather than ignored.</li><li><strong><code></strong>Verdict:<strong> Approve</code></strong> passed a check keyed on uppercase <code>APPROVE</code>.</li><li><strong>A mixed-format diff parsed as one file.</strong> Keying only on <code>diff --git</code> meant the second file — carrying a hardcoded production key and a concatenated SQL query — was invisible, and the coverage count reported that with confidence (case 2).</li><li><strong>The coverage invariant was satisfiable by a lie.</strong> Four findings across four files while claiming <code>Reviewed: 0</code> still summed correctly. Distinct finding paths are now checked against the reviewed count and against the diff.</li><li><strong>A comment counted as a branch.</strong> <code>// … hidden button for bookkeepers</code> matched on the word <em>for</em>, inflating the test expectation with control flow that does not exist. Comments are stripped before branch detection; the golden moved 2 → 1 deliberately.</li><li><strong><code>src/generated/</code> was not skipped</strong> — only <code>*.generated.ts</code> matched. The agent was reviewing a generated API client. Reviewable went 3 → 2.</li><li><strong>The golden files were read by no code.</strong> <code>evals/golden/</code> existed and nothing compared against it, so the suite was green while a rule change could alter every decision unnoticed. <code>run_evals.py</code> now diffs against golden field by field, and <code>audit/run_audit.py</code> corrupts a golden on a copy to prove the gate bites.</li><li><strong>A published example key demanded a finding.</strong> AWS documents <code>AKIAIOSFODNN7EXAMPLE</code> on its own site, and a negative test asserting a malformed key is rejected legitimately contains a <code>PRIVATE KEY</code> header. The scanner demanded an <code>L2-SEC-01</code> for both, so an honest reviewer could not pass without inventing a finding about something that was not a defect. Example-shaped tokens are advisory now, never a demand.</li><li><strong>A live credential inside a URL was invisible.</strong> Comments were stripped by a regex that read the <code>//</code> in <code>"postgres://admin:prod-sk-...@db.internal"</code> as the start of a comment and deleted the credential with the rest of the line. It reached neither the demand list nor the advisory one. Comments are now stripped by a scanner that knows what a string literal is.</li><li><strong>Quoting the PR was treated as smuggling.</strong> The check that stops a severity hiding in a table cell or a blockquote matched the marker anywhere in the row, so a review quoting <code>&gt; This is a [BLOCKER] for the August release</code> — the PR description, a documented input — was rejected. A smuggled finding leads its cell; a quotation mentions it in passing. The check now requires that position, and still catches the disguise.</li></ol><hr><h3>Output Contract — Code Sentinel</h3>
+<ol><li><strong>Silent no-op.</strong> With <code>context/</code> absent, the loader reported mode <code>L2-only</code> while loading zero rules: the agent would review nothing, find nothing, and return a clean result. Now <code>NO-CONTEXT</code>, <code>FATAL</code>, exit 3 (case 4).</li><li><strong>The same failure, one layer down.</strong> A context file that <em>existed</em> but parsed to zero rows — a missing trailing pipe was enough — silently dropped all 12 org security rules with <code>usable=True</code> and no warning. An unparseable context is now a CONFIG error, not a smaller rule set.</li><li><strong>Draft rules were only dormant if spelled exactly <code>draft</code>.</strong> <code>draft (pending ADR-012)</code>, <code>not-ratified</code> and <code>DRAFT — do not use</code> all loaded as <strong>active</strong>, and findings citing them validated clean. Any provisional wording is now dormant, and an unrecognised status fails safe to dormant.</li><li><strong>A deviation nobody could read still silenced a rule.</strong> <code>Expires: TBD</code>, a blank expiry or <code>2027-6</code> left the suppression active forever. A deviation is only honoured when its expiry and target both parse.</li><li><strong>Suppression depended on path shape.</strong> <code>fnmatch</code> is case-insensitive on Windows and case-sensitive elsewhere, and <code>a/src/…</code> — the form a git diff actually emits — matched nothing. Paths are normalised and matched case-sensitively on every platform.</li><li><strong>The refusal marker was a skeleton key.</strong> Any review containing <code>Status: insufficient_input</code> skipped every check: a document with <code>APPROVE</code>, three BLOCKERs, severity <code>CATASTROPHIC</code>, an invented rule ID and a suppressed path passed clean (case 9).</li><li><strong><code>####</code> made a finding invisible.</strong> Findings were matched at <code>###</code> exactly, so one extra <code>#</code> removed a finding from validation entirely. Any heading depth is now parsed, and finding-shaped bold text is rejected rather than ignored.</li><li><strong><code></strong>Verdict:<strong> Approve</code></strong> passed a check keyed on uppercase <code>APPROVE</code>.</li><li><strong>A mixed-format diff parsed as one file.</strong> Keying only on <code>diff --git</code> meant the second file — carrying a hardcoded production key and a concatenated SQL query — was invisible, and the coverage count reported that with confidence (case 2).</li><li><strong>The coverage invariant was satisfiable by a lie.</strong> Four findings across four files while claiming <code>Reviewed: 0</code> still summed correctly. Distinct finding paths are now checked against the reviewed count and against the diff.</li><li><strong>A comment counted as a branch.</strong> <code>// … hidden button for bookkeepers</code> matched on the word <em>for</em>, inflating the test expectation with control flow that does not exist. Comments are stripped before branch detection; the golden moved 2 → 1 deliberately.</li><li><strong><code>src/generated/</code> was not skipped</strong> — only <code>*.generated.ts</code> matched. The agent was reviewing a generated API client. Reviewable went 3 → 2.</li><li><strong>The golden files were read by no code.</strong> <code>evals/golden/</code> existed and nothing compared against it, so the suite was green while a rule change could alter every decision unnoticed. <code>run_evals.py</code> now diffs against golden field by field, and <code>audit/run_audit.py</code> corrupts a golden on a copy to prove the gate bites.</li><li><strong>A published example key demanded a finding.</strong> AWS documents <code>AKIAIOSFODNN7EXAMPLE</code> on its own site, and a negative test asserting a malformed key is rejected legitimately contains a <code>PRIVATE KEY</code> header. The scanner demanded an <code>L2-SEC-01</code> for both, so an honest reviewer could not pass without inventing a finding about something that was not a defect. Example-shaped tokens are advisory now, never a demand.</li><li><strong>A live credential inside a URL was invisible.</strong> Comments were stripped by a regex that read the <code>//</code> in <code>"postgres://admin:prod-sk-...@db.internal"</code> as the start of a comment and deleted the credential with the rest of the line. It reached neither the demand list nor the advisory one. Comments are now stripped by a scanner that knows what a string literal is.</li><li><strong>Quoting the PR was treated as smuggling.</strong> The check that stops a severity hiding in a table cell or a blockquote matched the marker anywhere in the row, so a review quoting <code>&gt; This is a [BLOCKER] for the August release</code> — the PR description, a documented input — was rejected. A smuggled finding leads its cell; a quotation mentions it in passing. The check now requires that position, and still catches the disguise.</li><li><strong>The quoted URL was fixed and the unquoted one was not.</strong> A <code>.env</code>, YAML or Dockerfile line <code>DATABASE_URL=postgres://admin:KEY@db.internal</code> still lost its credential to the <code>//</code> of the scheme, reaching neither the demand list nor the advisory one. A <code>//</code> preceded by <code>:</code> is a scheme.</li><li><strong>Incidental digit runs demoted real keys.</strong> <code>EXAMPLE_TOKEN</code> matched <code>0000000</code>, <code>AAAAAAAA</code>, <code>1234567890</code> and <code>deadbeef</code> anywhere in a token, so a genuine <code>sk_live_00000004Qh8xZ2mPqRsTuVwX</code> became a judgement call instead of a demand. Only a word that says it is an example survives.</li><li><strong>A bare PEM header in <code>docs/</code> forced a finding.</strong> The "a header with no key material is not a key" downgrade was gated on the file being a test, so any README showing the format demanded an <code>L2-SEC-01</code>.</li><li><strong>An emphasised severity escaped every check.</strong> <code>One aside: <strong>[BLOCKER]</strong> the auth check can be bypassed</code> mid-paragraph, and the same in <code>&lt;b&gt;</code> tags, passed while reading to a human as exactly what they are. Position cannot separate the reviewer's voice from quoted input; emphasis can. Blockquotes are now read as input - quoting the PR is legitimate - and an emphasised severity is a finding wherever it appears.</li><li><strong>The recall claim was not in the scored artefact.</strong> "A review that misses a proven defect is a failed review" was asserted in <code>SKILL.md</code> and tested only in <code>audit/regressions.py</code>. Two Eval Log cases now carry it: the same blind <code>APPROVE</code> passes without <code>--diff</code> and fails with it.</li></ol><hr><h3>Output Contract — Code Sentinel</h3>
 <p>Loaded on demand by SKILL.md §7. Normative.</p>
 <h4>Sections</h4>
 <p><code>H1 title</code> → <code>Scope/Context/Verdict header</code> → <code>Findings</code> → <code>Not Reviewed</code> → <code>Suppressed by Project Context</code> → <code>Coverage</code></p>
@@ -3871,7 +3894,7 @@ if __name__ == "__main__":
         sys.exit(0)
     except KeyboardInterrupt:
         sys.exit(130)
-</code></pre></details><details class="filed"><summary><span class="fn">parse_diff.py</span><span class="fd">Deterministic unified-diff parser for the Code Sentinel.</span><span class="fl">382 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">parse_diff.py</span><span class="fd">Deterministic unified-diff parser for the Code Sentinel.</span><span class="fl">387 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Deterministic unified-diff parser for the Code Sentinel.
 
 Segments a diff into files and hunks, classifies each file, and flags
@@ -4007,7 +4030,11 @@ def strip_comments(s: str) -&gt; str:
             end = s.find("*/", i + 2)
             i = n if end &lt; 0 else end + 2
             continue
-        if s.startswith("//", i) or c == "#" or s.startswith("-- ", i):
+        # A `//` preceded by `:` is a URL scheme, not a comment. Fixing
+        # only the quoted form left `DATABASE_URL=postgres://admin:KEY@h`
+        # - a .env, YAML or Dockerfile line - still losing its credential.
+        if (s.startswith("//", i) and not (i and s[i - 1] == ":")) \
+                or c == "#" or s.startswith("-- ", i):
             break
         out.append(c)
         i += 1
@@ -4020,8 +4047,7 @@ def strip_comments(s: str) -&gt; str:
 # a PRIVATE KEY header. Demanding a finding for either forces an honest reviewer
 # to fabricate one, which is the failure this scanner exists to prevent.
 EXAMPLE_TOKEN = re.compile(r"(?i)example|dummy|sample|fake|redacted|"
-                           r"not[-_]?a[-_]?real|deadbeef|0000000|1234567890|"
-                           r"AAAAAAAA|xxxxx")
+                           r"not[-_]?a[-_]?real|placeholder|changeme")
 # A PRIVATE KEY header with no key material after it is a header, not a key.
 KEY_MATERIAL = re.compile(r"-----\s*\S{16,}")
 
@@ -4114,9 +4140,11 @@ def parse(text: str) -&gt; dict:
                 # header in a test, are not credentials. Advisory, never a
                 # demand: forcing a reviewer to invent a finding about a
                 # non-defect is the worse of the two failure modes.
+                # A PRIVATE KEY header with nothing after it is a
+                # header. Gating that on the file being a test forced a
+                # finding for the same header in `docs/format.md`.
                 dead = bool(EXAMPLE_TOKEN.search(tok)) or (
-                    what == "private key" and cur["kind"] == "test"
-                    and not KEY_MATERIAL.search(code))
+                    what == "private key" and not KEY_MATERIAL.search(code))
                 if dead:
                     note = f"{what} (reads as an example): {tok[:40]}"
                     if note not in cur["possible_secrets"]:
@@ -4253,7 +4281,7 @@ if __name__ == "__main__":
         sys.exit(0)
     except KeyboardInterrupt:
         sys.exit(130)
-</code></pre></details><details class="filed"><summary><span class="fn">run_evals.py</span><span class="fd">Self-contained eval runner for this agent.</span><span class="fl">216 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">run_evals.py</span><span class="fd">Self-contained eval runner for this agent.</span><span class="fl">226 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Self-contained eval runner for this agent.
 
 Runs standalone: it references no sibling agent, no shared library, and no path
@@ -4393,6 +4421,16 @@ def main() -&gt; int:
         ("validate_findings.py &lt;- valid-review.md (+diff)",
          "validate_findings.py",
          [INPUTS / "valid-review.md", "--diff", pd, "--today", TODAY], {0}, None),
+        # A blind APPROVE: well-formed, internally consistent, and silent
+        # about defects the parser proved are in the diff. Without --diff it
+        # passes; with it, it must fail. That contrast IS the recall claim.
+        ("validate_findings.py &lt;- adversarial-missed-defect.md (no diff, passes)",
+         "validate_findings.py",
+         [INPUTS / "adversarial-missed-defect.md", "--today", TODAY], {0}, None),
+        ("validate_findings.py &lt;- adversarial-missed-defect.md (+diff, must fail)",
+         "validate_findings.py",
+         [INPUTS / "adversarial-missed-defect.md", "--diff", pd,
+          "--today", TODAY], {1}, None),
         ("validate_findings.py &lt;- valid-refusal.md", "validate_findings.py",
          [INPUTS / "valid-refusal.md", "--today", TODAY], {0}, None),
         ("validate_findings.py &lt;- adversarial-uncited-review.md",
@@ -4469,7 +4507,7 @@ def main() -&gt; int:
 
 if __name__ == "__main__":
     sys.exit(main())
-</code></pre></details><details class="filed"><summary><span class="fn">validate_findings.py</span><span class="fd">Findings validator for the Code Sentinel.</span><span class="fl">442 lines</span></summary><pre><code>#!/usr/bin/env python3
+</code></pre></details><details class="filed"><summary><span class="fn">validate_findings.py</span><span class="fd">Findings validator for the Code Sentinel.</span><span class="fl">465 lines</span></summary><pre><code>#!/usr/bin/env python3
 """Findings validator for the Code Sentinel.
 
 Makes the citation rule mechanical instead of aspirational. A finding that
@@ -4540,19 +4578,35 @@ ANY_HEADING = re.compile(r"^#{1,6}\s", re.M)
 # Finding-shaped text that is NOT a contract heading — bold or a plain bullet.
 # Both were routes to smuggling an uncited finding past the parser.
 FINDING_LIKE = re.compile(
-    r"^[ \t]*(?P&lt;pre&gt;(?:[-*+&gt;|][ \t]*)?\*{0,2}(?:\|[ \t]*)?)"
-    r"\[(?P&lt;sev&gt;\w+)\]\*{0,2}[ \t]*\S", re.M)
+    r"^[ 	]*(?P&lt;pre&gt;(?:[-*+|][ 	]*)?[*]{0,2}(?:[|][ 	]*)?)"
+    r"[[](?P&lt;sev&gt;[\w]+)[]][*]{0,2}[ 	]*[\S]", re.M)
+# `&gt;` is deliberately absent from the prefix: a blockquote is quoted input, not
+# the reviewer's voice. A review that quoted the PR description - a documented
+# input - was being rejected. An emphasised severity is still caught anywhere by
+# EMPHASISED_SEV, which is what a reviewer asserting one actually writes.
 # A severity anywhere inside a table row or a blockquote. Bold and bullets were
 # already caught; a table cell and a `&gt;` quote were the next two shapes, and an
 # uncited BLOCKER in either passed with an APPROVE verdict.
 SEV_WORDS = r"BLOCKER|MAJOR|MINOR|CRITICAL|CATASTROPHIC|WARNING"
-# A severity that LEADS a table cell or a blockquote is a finding wearing a
-# disguise. One mentioned mid-sentence is prose - very often a quotation of the
-# PR description, which is a documented input and must stay quotable.
-SMUGGLED_ROW = re.compile(r"^[ 	]*\|(?P&lt;row&gt;.+)$", re.M)
-SMUGGLED_CELL = re.compile(r"^[ 	&gt;*_`]*\[(?P&lt;sev&gt;" + SEV_WORDS + r")\]", re.I)
-SMUGGLED_QUOTE = re.compile(r"^[ 	]*&gt;+[ 	]*(?P&lt;row&gt;[*_`]*\[(?P&lt;sev&gt;" + SEV_WORDS
-                            + r")\].*)$", re.M | re.I)
+# A severity the reviewer EMPHASISES is the reviewer asserting it, wherever it
+# sits. `**[BLOCKER]** the auth check can be bypassed` mid-paragraph, and the
+# same thing in &lt;b&gt; tags, both passed every check while reading to a human as
+# exactly what they are. Emphasis is the signal; position is not.
+#
+# (The patterns below avoid backslash escapes deliberately - character classes
+# say the same thing and survive every editor and shell this repo passes
+# through. A mangled escape here silently disarms the citation rule.)
+EMPHASISED_SEV = re.compile(
+    r"(?:[*][*]|__|&lt;(?:b|strong|em|i|mark)&gt;)[ ]*[[](?P&lt;sev&gt;"
+    + SEV_WORDS + r")[]]", re.I)
+# A severity that LEADS a table cell is a finding wearing a disguise.
+SMUGGLED_ROW = re.compile(r"^[ " + chr(9) + r"]*[|](?P&lt;row&gt;.+)$", re.M)
+SMUGGLED_CELL = re.compile(r"^[*_`]*[[](?P&lt;sev&gt;" + SEV_WORDS + r")[]]", re.I)
+# Blockquotes are NOT read as findings. A blockquote is quoted material -
+# usually the PR description, which is a documented input - and rejecting a
+# review for quoting what it reviews is the false positive that gets a
+# validator switched off. A reviewer who means it emphasises it, and
+# EMPHASISED_SEV catches that wherever it appears.
 WHERE = re.compile(r"^\s*[-*+]?\s*Where\s*:\s*([^\s:]+)", re.M | re.I)
 WHERE_FULL = re.compile(r"^\s*[-*+]?\s*Where\s*:\s*(\S+)", re.M | re.I)
 RULE = re.compile(r"^\s*[-*+]?\s*Rule\s*:\s*(L[23]-[A-Z]+-\d+)", re.M | re.I)
@@ -4628,8 +4682,15 @@ def stray_findings(md: str, found: list[dict]) -&gt; list[str]:
             if (c := SMUGGLED_CELL.match(cell.strip())):
                 smuggled.append((c.group("sev"), m.group("row"), "a table row"))
                 break
-    for m in SMUGGLED_QUOTE.finditer(md):
-        smuggled.append((m.group("sev"), m.group("row"), "a blockquote"))
+    # An emphasised severity is a finding wherever it sits - including
+    # mid-paragraph, which escaped every check while reading as a blocker.
+    for m in EMPHASISED_SEV.finditer(md):
+        eol = md.find(chr(10), m.start())
+        line = md[md.rfind(chr(10), 0, m.start()) + 1:
+                  eol if eol &gt; 0 else len(md)]
+        if line.lstrip().startswith(("#", "&gt;")):
+            continue          # a heading is the correct shape; a quote is input
+        smuggled.append((m.group("sev"), line, "emphasised prose"))
     for sev, row, shape in smuggled:
         if any(s and s in row for s in seen):
             continue
@@ -4951,6 +5012,8 @@ if __name__ == "__main__":
   ok    load_rules.py &lt;- context/  [af08522f x3]
   ok    load_rules.py &lt;- NO CONTEXT (must refuse)  [90ca2772 x3]
   ok    validate_findings.py &lt;- valid-review.md (+diff)  [a0230a86 x3]
+  ok    validate_findings.py &lt;- adversarial-missed-defect.md (no diff, passes)  [a0230a86 x3]
+  ok    validate_findings.py &lt;- adversarial-missed-defect.md (+diff, must fail)  [4b8519a0 x3]
   ok    validate_findings.py &lt;- valid-refusal.md  [a0230a86 x3]
   ok    validate_findings.py &lt;- adversarial-uncited-review.md  [12e52792 x3]
   ok    validate_findings.py &lt;- adversarial-verdict-contradiction.md  [146f121d x3]
@@ -4959,7 +5022,7 @@ if __name__ == "__main__":
   ok    validate_findings.py &lt;- adversarial-uncited-only.md  [0fa02512 x3]
   ok    load_rules.py &lt;- expected-suppressions.json  [golden ok]
 
-15/15 passed</code></pre></div></div></section></div>
+17/17 passed</code></pre></div></div></section></div>
   </div>
 </div>
 
