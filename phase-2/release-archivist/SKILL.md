@@ -240,37 +240,4 @@ a published entry is caught instead of reconciling perfectly against nothing.
 and a WIP commit. The agent emits the explicit *no customer-facing changes*
 notice rather than manufacturing content. Padding a thin release is a defect.
 
-**Deltas found and fixed.**
-
-1. **`add regression test for session timeout` classified `FEATURE`.** Rule R-11
-   matched the verb *add* before any test rule existed. The ledger still
-   reconciled — the item went into the *wrong bucket*, not into nothing — which is
-   exactly the error a coverage count alone cannot catch. Added R-09b.
-2. **The zero-loss guarantee was a tautology.** Fuzzing 40,000 inputs produced
-   zero failures, because the identity checked was true by construction. See
-   above: the ledger now reconciles against the raw line count.
-3. **Six shipped features vanished into NOISE.** Token heuristics ran ahead of
-   conventional-commit prefixes, so `feat: add dashboard widget` was classified
-   INTERNAL on the word *dashboard* — silently, with no low-confidence flag.
-   `feat:` / `fix:` / `chore:` / `refactor:` now win first, and anything buried by
-   a token rule while carrying a capability verb is flagged for human judgment.
-4. **Jira CSV rows were not items at all.** A row with no spaces failed the
-   two-word test and was dropped before classification: six shipped items reported
-   as `in=3 … reconciles=YES`. Lines are now counted first and classified second,
-   and a line carrying a ticket key is always an item.
-5. **The refusal marker was a skeleton key.** Any document containing
-   `Status: insufficient_input` skipped every check including leak detection, so
-   notes leaking a commit hash and a ticket key passed clean.
-6. **`<!-- INTERNAL` on line 1 emptied the customer section.** `customer_section`
-   splits on the marker and takes the first part; with the marker first, every
-   leak check silently inspected an empty string.
-7. **The leak list was a hardcoded copy of L3.** Nine internal names were
-   duplicated from the translation table in `context/L3-project.md`, guaranteed to
-   drift the first time L3 grew. The validator reads the table directly.
-8. **Two validators were non-deterministic.** Leak findings were emitted from an
-   unordered set: twelve runs produced twelve different outputs. Sorted.
-9. **`classify.py --json` returned 0 on a broken ledger**, so a pipeline could
-   consume a lossy classification and never know.
-10. **The Eval Log described a fixture that did not exist.** Row 3 claimed a
-    leaky-notes input with "4/4 caught"; the third input was a clean file. The
-    fixture now exists and is case 6.
+**Deltas found and fixed.** 10 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.

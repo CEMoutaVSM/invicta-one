@@ -189,23 +189,9 @@ Status: insufficient_input
 - [ ] If zero findings, that is stated plainly and no filler is added
 - [ ] `validate_findings.py` exits 0
 
-## 11. Calibration — training this agent on a new project
+## 11. Calibration
 
-The reason a generic reviewer fails is that it does not know which deviations are
-deliberate. Fix that in four steps:
-
-1. **Bootstrap** — `python scripts/bootstrap_context.py <repo>` drafts `L3-project.md`
-   from the README, ADRs, folder structure and the human comments on recent merged PRs.
-   Every inferred rule is written with a confidence level and the evidence behind it.
-2. **Ratify** — a tech lead corrects the draft. **The agent cannot ratify its own
-   context.** Rules left as `draft` stay dormant.
-3. **Shadow** — run advisory-only for one sprint. Humans tag findings
-   `useful` / `noise` / `missed`.
-4. **Learn** — each `noise` becomes a deviation entry or a rule correction; each `missed`
-   becomes a candidate rule. Re-run the golden set after every context change to confirm
-   you removed a false positive without losing a true one.
-
-Promote from advisory to required check once precision ≥ 80% on the golden set.
+Adopting this agent on a new repository means writing its L3 context and shadow-running it for one sprint before it becomes a required check. The protocol is in `references/calibration.md`.
 
 ## 12. Composition (optional)
 
@@ -263,49 +249,4 @@ authorisation decided by a client-supplied flag (`L2-SEC-05`).
 flagging `L3-EVENT-01` on `src/onboarding` with no human involvement. The
 calibration layer has a clock, so the registry cannot rot into a list of excuses.
 
-**Deltas found and fixed.**
-
-1. **Silent no-op.** With `context/` absent, the loader reported mode `L2-only`
-   while loading zero rules: the agent would review nothing, find nothing, and
-   return a clean result. Now `NO-CONTEXT`, `FATAL`, exit 3 (case 4).
-2. **The same failure, one layer down.** A context file that *existed* but parsed
-   to zero rows — a missing trailing pipe was enough — silently dropped all 12 org
-   security rules with `usable=True` and no warning. An unparseable context is now
-   a CONFIG error, not a smaller rule set.
-3. **Draft rules were only dormant if spelled exactly `draft`.** `draft (pending
-   ADR-012)`, `not-ratified` and `DRAFT — do not use` all loaded as **active**,
-   and findings citing them validated clean. Any provisional wording is now
-   dormant, and an unrecognised status fails safe to dormant.
-4. **A deviation nobody could read still silenced a rule.** `Expires: TBD`, a
-   blank expiry or `2027-6` left the suppression active forever. A deviation is
-   only honoured when its expiry and target both parse.
-5. **Suppression depended on path shape.** `fnmatch` is case-insensitive on
-   Windows and case-sensitive elsewhere, and `a/src/…` — the form a git diff
-   actually emits — matched nothing. Paths are normalised and matched
-   case-sensitively on every platform.
-6. **The refusal marker was a skeleton key.** Any review containing
-   `Status: insufficient_input` skipped every check: a document with `APPROVE`,
-   three BLOCKERs, severity `CATASTROPHIC`, an invented rule ID and a suppressed
-   path passed clean (case 9).
-7. **`####` made a finding invisible.** Findings were matched at `###` exactly, so
-   one extra `#` removed a finding from validation entirely. Any heading depth is
-   now parsed, and finding-shaped bold text is rejected rather than ignored.
-8. **`**Verdict:** Approve`** passed a check keyed on uppercase `APPROVE`.
-9. **A mixed-format diff parsed as one file.** Keying only on `diff --git` meant
-   the second file — carrying a hardcoded production key and a concatenated SQL
-   query — was invisible, and the coverage count reported that with confidence
-   (case 2).
-10. **The coverage invariant was satisfiable by a lie.** Four findings across four
-    files while claiming `Reviewed: 0` still summed correctly. Distinct finding
-    paths are now checked against the reviewed count and against the diff.
-11. **A comment counted as a branch.** `// … hidden button for bookkeepers`
-    matched on the word *for*, inflating the test expectation with control flow
-    that does not exist. Comments are stripped before branch detection; the golden
-    moved 2 → 1 deliberately.
-12. **`src/generated/` was not skipped** — only `*.generated.ts` matched. The
-    agent was reviewing a generated API client. Reviewable went 3 → 2.
-13. **The golden files were read by no code.** `evals/golden/` existed and nothing
-    compared against it, so the suite was green while a rule change could alter
-    every decision unnoticed. `run_evals.py` now diffs against golden field by
-    field, and `audit/run_audit.py` corrupts a golden on a copy to prove the gate
-    bites.
+**Deltas found and fixed.** 13 defects were found in this agent by the harness and by independent auditors, and every one is now a permanent test case. The full list, with what changed and why, is in `references/eval-deltas.md`.

@@ -1116,22 +1116,27 @@ For src/onboarding/Saga.cs: no suppressions
     an external skill-quality tool with no knowledge of this project &mdash; structural validation
     plus a graded quality review:</p>
     <div class="scores">
-      <div class="score" style="--c:var(--amber)"><div class="v">90<span style="font-size:1rem">%</span></div>
-        <div class="n">BB-8 &middot; Release Archivist<br>16/16 checks passed</div></div>
+      <div class="score" style="--c:var(--gold)"><div class="v">97<span style="font-size:1rem">%</span></div>
+        <div class="n">C-3PO &middot; Code Sentinel<br>16/16 checks passed</div></div>
       <div class="score" style="--c:var(--sky)"><div class="v">94<span style="font-size:1rem">%</span></div>
         <div class="n">R2-D2 &middot; Scribe<br>16/16 checks passed</div></div>
-      <div class="score" style="--c:var(--gold)"><div class="v">92<span style="font-size:1rem">%</span></div>
-        <div class="n">C-3PO &middot; Code Sentinel<br>16/16 checks passed</div></div>
+      <div class="score" style="--c:var(--amber)"><div class="v">90<span style="font-size:1rem">%</span></div>
+        <div class="n">BB-8 &middot; Release Archivist<br>16/16 checks passed</div></div>
       <div class="score" style="--c:var(--taco-green-300)"><div class="v">48<span style="font-size:1rem">/48</span></div>
         <div class="n">structural checks<br>across all three</div></div>
     </div>
-    <pre>$ tessl skill review --json release-archivist   &#8594;  reviewScore 90
+    <pre>$ tessl skill review --json code-sentinel        &#8594;  reviewScore 97
 $ tessl skill review --json jira-scribe          &#8594;  reviewScore 94
-$ tessl skill review --json code-sentinel        &#8594;  reviewScore 92</pre>
-    <p class="muted">Run on a copy, so the submitted folders carry no tooling of their own. We did
-    not run Tessl&rsquo;s <code>--optimize</code>, which rewrites a skill to raise its own score:
-    several sentences in these files are read by the validators, and a rewrite that scored better
-    could quietly break a check.</p>
+$ tessl skill review --json release-archivist    &#8594;  reviewScore 90</pre>
+    <p>We acted on the feedback where it was right. Tessl marked the Sentinel down for
+    inlining documentation the agent never acts on, so the delta history and the calibration
+    protocol moved into <code>references/</code>: <b>90 &rarr; 97</b>.</p>
+    <p class="muted">We did not act on the rest. Its remaining complaint is the Eval Log
+    itself &mdash; which the brief requires at the bottom of every <code>SKILL.md</code>.
+    Deleting a scored requirement to satisfy a linter is the wrong trade. We did not run
+    <code>--optimize</code> either: it rewrites a skill to raise its own score, and several
+    sentences in these files are read by the validators, so a better-scoring rewrite could
+    quietly break a check. Run on a copy, so the submitted folders carry no tooling.</p>
   </div>
 </div></section>
 
