@@ -27,15 +27,19 @@ audits (wrong tool: no diff, no signal) or for approving merges (it advises, hum
 ## 3. Input contract
 
 **Accepts:** unified diff, `git show` output, multiple files, binary-file markers,
-truncated hunks. A PR description is accepted *alongside* a diff, as context.
+truncated hunks — and a pull request description with no diff at all.
 
 **Tolerates:** missing PR description, generated files, vendored code, huge diffs
 (> 2000 lines → review the top 20 files by risk and say so explicitly).
 
-**Rejects:** input containing no diff and no code → `status: insufficient_input`.
-A PR description on its own is rejected: there is nothing to review, and a review
-written from a description alone is exactly the invented finding this agent exists
-to prevent.
+**A description with no diff is reviewable, but not in the same way.** The parser
+returns `status: description_only`. An approach described in prose can offend an
+architectural rule, and that finding is citable like any other. What prose cannot
+support is a line number or a claim about test coverage, so the validator rejects
+both — and requires the review to say plainly that no diff was supplied, so no
+reader assumes the code was seen.
+
+**Rejects:** input with neither code nor a description → `status: insufficient_input`.
 
 Run `scripts/parse_diff.py` first — it segments hunks, classifies files, and flags
 generated/vendored paths that must not be reviewed.
@@ -245,15 +249,17 @@ describe a case the suite does not run.
 | 8 | `validate_findings.py <- valid-review.md (+diff)` | 3 | `a0230a86` x3 | — | PASS |
 | 9 | `validate_findings.py <- adversarial-missed-defect.md (no diff, passes)` | 3 | `a0230a86` x3 | — | PASS |
 | 10 | `validate_findings.py <- adversarial-missed-defect.md (+diff, must fail)` | 3 | `4b8519a0` x3 | — | PASS |
-| 11 | `validate_findings.py <- valid-refusal.md` | 3 | `a0230a86` x3 | — | PASS |
-| 12 | `validate_findings.py <- adversarial-uncited-review.md` | 3 | `12e52792` x3 | — | PASS |
-| 13 | `validate_findings.py <- adversarial-verdict-contradiction.md` | 3 | `146f121d` x3 | — | PASS |
-| 14 | `validate_findings.py <- adversarial-refusal-bypass.md` | 3 | `2e58312a` x3 | — | PASS |
-| 15 | `validate_findings.py <- adversarial-style-only.md` | 3 | `45f07af9` x3 | — | PASS |
-| 16 | `validate_findings.py <- adversarial-uncited-only.md` | 3 | `0fa02512` x3 | — | PASS |
-| 17 | `load_rules.py <- expected-suppressions.json` | 3 | deterministic | yes | PASS |
+| 11 | `parse_diff.py <- 07-pr-description.txt (no diff, still usable)` | 3 | `d08fc3b2` x3 | — | PASS |
+| 12 | `validate_findings.py <- valid-description-review.md (+description)` | 3 | `a0230a86` x3 | — | PASS |
+| 13 | `validate_findings.py <- valid-refusal.md` | 3 | `a0230a86` x3 | — | PASS |
+| 14 | `validate_findings.py <- adversarial-uncited-review.md` | 3 | `12e52792` x3 | — | PASS |
+| 15 | `validate_findings.py <- adversarial-verdict-contradiction.md` | 3 | `146f121d` x3 | — | PASS |
+| 16 | `validate_findings.py <- adversarial-refusal-bypass.md` | 3 | `2e58312a` x3 | — | PASS |
+| 17 | `validate_findings.py <- adversarial-style-only.md` | 3 | `45f07af9` x3 | — | PASS |
+| 18 | `validate_findings.py <- adversarial-uncited-only.md` | 3 | `0fa02512` x3 | — | PASS |
+| 19 | `load_rules.py <- expected-suppressions.json` | 3 | deterministic | yes | PASS |
 
-**17/17 passed.**
+**19/19 passed.**
 
 **Both directions are tested.** Case 12 proves the agent cannot say what it
 cannot cite. Cases 9 and 10 prove the opposite and harder thing: the same blind

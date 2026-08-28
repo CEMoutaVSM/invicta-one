@@ -1,0 +1,7 @@
+Add bulk invoice export for accountants
+
+Accountants have asked for a way to pull a whole period out of the system in
+one go. We will add a new endpoint in the reporting service that queries the
+invoice read-model directly and streams the result as CSV, so nothing has to
+be held in memory. No schema migration is needed. Rollout behind a feature
+flag, off by default, enabled per-tenant once support have been briefed.

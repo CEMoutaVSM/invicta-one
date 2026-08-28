@@ -32,6 +32,9 @@ OLD_HDR = re.compile(r"^--- (?:a/)?(.+?)\s*$")
 NEW_HDR = re.compile(r"^\+\+\+ (?:b/)?(.+?)\s*$")
 HUNK_HDR = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)$")
 DIFFISH = re.compile(r"^(@@ |\+\+\+ |--- |diff --git )", re.M)
+# Enough prose to be a pull-request description rather than an empty file
+# or a stray fragment: six or more words on one line.
+PROSE = re.compile(r"^\s*(?:\S+\s+){5,}\S+", re.M)
 
 # Paths the agent is forbidden from reviewing. Reviewing generated code
 # is the fastest way to fill an output with noise.
@@ -304,6 +307,13 @@ def parse(text: str) -> dict:
         status = "ok"
     elif DIFFISH.search(text):
         status = "unparseable"
+    elif PROSE.search(text):
+        # A PR description with no diff. The brief asks for this input, and
+        # refusing it was over-correction: an approach described in prose can
+        # offend an architectural rule, and that finding is citable. What it
+        # cannot support is a line number or a test-coverage claim, which is
+        # what the validator enforces for this status.
+        status = "description_only"
     else:
         status = "insufficient_input"
 

@@ -56,6 +56,7 @@ from load_rules import load, suppressed_for, norm_path, mask_fences  # noqa: E40
 SEVERITIES = {"BLOCKER", "MAJOR", "MINOR"}
 # The closed set from references/output-contract.md. Keep them in step: an
 # enum here that the contract does not define rejects reviews written to spec.
+NO_DIFF_RULES = ("TEST-01", "TEST-02")
 VERDICTS = {"APPROVE", "APPROVE-WITH-COMMENTS", "REQUEST-CHANGES"}
 
 # Any heading depth. Keying on `###` exactly meant a finding written with
@@ -316,11 +317,39 @@ def validate(md: str, ctx: pathlib.Path, today: dt.date,
             errs.append(f"claims Reviewed: {rev} but raises findings against "
                         f"{len(finding_paths)} distinct file(s) - a file you "
                         "did not review cannot yield a finding")
+    elif diff and diff.get("status") == "description_only":
+        # No files to count. What must be present is the statement that
+        # this was reviewed from a description, so a reader is never left
+        # to assume the diff was seen.
+        if not re.search(r"(?i)no diff|description only|without a diff|"
+                         r"description alone", md):
+            errs.append("reviewed from a PR description with no diff, and "
+                        "does not say so - a reader would assume the code "
+                        "was seen")
     elif found or diff:
         # Required whenever there is a diff to reconcile against, not only when
         # findings exist: a coverage-free "APPROVE, no findings" otherwise
         # skipped the reviewed-versus-reviewable check entirely.
         errs.append("missing Coverage section")
+
+    # --- a PR description with no diff --------------------------------------
+    # The brief asks the Sentinel to analyse "a Git diff file (.diff) OR pull
+    # request description". A described approach can offend an architectural
+    # rule, and that finding is citable. What prose cannot support is a line
+    # number or a claim about test coverage - so those are rejected here
+    # rather than the whole input being refused.
+    if diff and diff.get("status") == "description_only":
+        for f in found:
+            if f["raw_where"] and re.search(r":\d+", f["raw_where"]):
+                errs.append(
+                    f"[{f['severity']}] {f['summary'][:40]!r} cites "
+                    f"{f['raw_where']}, but no diff was supplied - a line-level "
+                    "claim cannot be evidenced from a description")
+            if f["rule"] and f["rule"].endswith(tuple(NO_DIFF_RULES)):
+                errs.append(
+                    f"{f['rule']} cannot be judged from a description: "
+                    "whether tests were added is unknowable without a diff")
+        return errs
 
     # --- recall: what the review MUST catch, given the parsed diff ----------
     if diff:

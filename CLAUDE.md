@@ -9,7 +9,9 @@ Three independent AI agents submitted to **Visma Tech Portugal's AI Program 2026
 Phase 2: The Agentic Shift**. Deliverable is a `SKILL.md` per agent, committed to a
 shared repo, each with an Eval Log proving deterministic behaviour on messy inputs.
 
-**Deadline: today.** Prefer finishing over refactoring. Do not restructure working code.
+**Deadline: end of August 2026** (extended from the original date by the programme
+organisers). The submission is already in a shippable state and pushed; treat any
+remaining time as buying evidence, not refactors. Do not restructure working code.
 
 ## Non-negotiable invariants
 

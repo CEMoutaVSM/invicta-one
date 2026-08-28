@@ -883,6 +883,46 @@ def round_five() -> None:
              if f.suffix in (".diff", ".log", ".tmp", ".bak")]
     case("Q-01", "no scratch files at the repository root", not stray,
          ", ".join(stray))
+    # Brief compliance: Trial 3 says the Sentinel analyses "a Git diff file
+    # (.diff) OR pull request description". Refusing a description was an
+    # over-correction of an earlier contradiction in the input contract.
+    desc = CS / "evals/inputs/07-pr-description.txt"
+    c, o = sh(PD, desc)
+    env = json.loads(o)
+    case("B-01", "a PR description with no diff is accepted, not refused",
+         env["status"] == "description_only", env["status"])
+
+    pdesc = w("pdesc.json", o)
+    good = CS / "evals/inputs/valid-description-review.md"
+    c, o = sh(VF, good, "--diff", pdesc, "--today", "2026-08-06")
+    case("B-02", "an architectural finding from a description validates",
+         c == 0, o.strip()[:180])
+
+    # ...and the two things prose cannot evidence are rejected.
+    body = good.read_text(encoding="utf-8")
+    c, o = sh(VF, w("b03.md", body.replace("- Where: reporting service",
+                    "- Where: src/Reporting/Endpoint.cs:42")),
+              "--diff", pdesc, "--today", "2026-08-06")
+    case("B-03", "a line-level claim from a description is rejected",
+         c == 1 and "line-level" in o, o.strip()[:180])
+
+    c, o = sh(VF, w("b04.md", body.replace("- Rule: L3-ARCH-01",
+                    "- Rule: L2-TEST-01")),
+              "--diff", pdesc, "--today", "2026-08-06")
+    case("B-04", "a test-coverage claim from a description is rejected",
+         c == 1 and "unknowable" in o, o.strip()[:180])
+
+    # ...and the review must admit it never saw the code.
+    c, o = sh(VF, w("b05.md", body.replace("No diff was supplied.",
+                    "Reviewed the change.")),
+              "--diff", pdesc, "--today", "2026-08-06")
+    case("B-05", "a description-only review must say no diff was supplied",
+         c == 1 and "does not say so" in o, o.strip()[:180])
+
+    # An input with neither code nor prose is still a refusal.
+    c, o = sh(PD, w("b06.txt", chr(10)))
+    case("B-06", "an empty input still refuses", 
+         json.loads(o)["status"] == "insufficient_input", o[:120])
 
 def main() -> int:
     for fn in (sentinel_shapes, sentinel_precision, sentinel_recall,

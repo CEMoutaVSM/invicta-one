@@ -504,7 +504,7 @@ $ validate_findings.py review-raising-that-complaint.md
       <tr><td><b>Consistency</b></td><td>Asked for &mdash; &ldquo;always remember to&hellip;&rdquo;</td><td>Removed as a possibility: a script decides, so it cannot vary</td></tr>
       <tr><td><b>Bad input</b></td><td>It answers anyway</td><td>It refuses, and names the missing field</td></tr>
       <tr><td><b>When it&rsquo;s wrong</b></td><td>You find out in review, or you don&rsquo;t</td><td>A validator rejects it, with a reason and an exit code</td></tr>
-      <tr><td><b>Proof</b></td><td>It looked good the times you tried it</td><td>38 cases that fail when the logic changes</td></tr>
+      <tr><td><b>Proof</b></td><td>It looked good the times you tried it</td><td>40 cases that fail when the logic changes</td></tr>
     </tbody>
   </table></div>
   <div class="stack">
@@ -1085,7 +1085,7 @@ For src/onboarding/Saga.cs: no suppressions
   </div>
   <div class="grid3">
     <div class="card accent" style="--c:var(--amber)"><div class="stat" style="color:var(--amber)">47</div><div class="stat-l">defects recorded against the agents &mdash; 11 by us, the rest by twelve auditors</div></div>
-    <div class="card accent" style="--c:var(--sky)"><div class="stat" style="color:var(--sky)">38</div><div class="stat-l">eval cases, 12 gated against expected decisions</div></div>
+    <div class="card accent" style="--c:var(--sky)"><div class="stat" style="color:var(--sky)">40</div><div class="stat-l">eval cases, 12 gated against expected decisions</div></div>
     <div class="card accent" style="--c:var(--gold)"><div class="stat" style="color:var(--gold)">47</div><div class="stat-l">compliance checks, each written so it can actually fail</div></div>
     <div class="card accent" style="--c:var(--taco-green-300)"><div class="stat" style="color:var(--taco-green-300)">0</div><div class="stat-l">dependencies &mdash; Python standard library only</div></div>
   </div>
@@ -1109,7 +1109,7 @@ For src/onboarding/Saga.cs: no suppressions
       </ul>
     </div>
   </div>
-  <p style="font-weight:700">Publishing that list is the point. A tool nobody has attacked is a tool nobody has tested. Every one is now a permanent test case: <code>audit/regressions.py</code> holds 125 checks, each tagged with the auditor and finding it came from.</p>
+  <p style="font-weight:700">Publishing that list is the point. A tool nobody has attacked is a tool nobody has tested. Every one is now a permanent test case: <code>audit/regressions.py</code> holds 131 checks, each tagged with the auditor and finding it came from.</p>
 
   <div class="card">
     <h4>Checked against someone else&rsquo;s standard, too</h4>

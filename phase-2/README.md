@@ -56,7 +56,7 @@ d29a32c9b5e1f02cd803d44f24191f28
   [OK ] jira-scribe         ran with code-sentinel, release-archivist removed
          9/9 passed
   [OK ] code-sentinel       ran with jira-scribe, release-archivist removed
-         17/17 passed
+         19/19 passed
   [OK ] release-archivist   ran with jira-scribe, code-sentinel removed
          12/12 passed
 ```
@@ -109,7 +109,7 @@ FAIL (6 violation(s))
 ## Eval Log
 
 Per-agent eval logs live at the bottom of each `SKILL.md`, as the brief requires.
-This is the combined view: **38 cases over 29 input files**, all green.
+This is the combined view: **40 cases over 31 input files**, all green.
 
 Corpus: real sprint artefacts from `service-alpha`, anonymised with a fixed
 substitution map (service names to `service-alpha`, people to first names,
@@ -120,7 +120,7 @@ mid-sentence reversals, duplicate ticket keys.
 |---|---|---|---|---|
 | `release-archivist` | 12 | 4 | 10 | classification, line-level ledger, per-entry attribution, leak detection, refusal |
 | `jira-scribe` | 9 | 3 | 8 | transcript refusal, brain-dump happy path, contract validation, fabrication guard |
-| `code-sentinel` | 17 | 5 | 11 | diff parsing, rule loading, citation rule, recall, secret detection, NO-CONTEXT refusal |
+| `code-sentinel` | 19 | 5 | 13 | diff parsing, rule loading, citation rule, recall, secret detection, NO-CONTEXT refusal |
 
 Run them yourself: `python <agent>/scripts/run_evals.py` in any agent folder, or
 `./verify.sh` for everything. `verify.sh` also replays the end-to-end traces in
@@ -175,7 +175,7 @@ failed open.** A regex that did not match returned "clean" rather than
 to be caught.
 
 Every one is now a permanent test. `audit/regressions.py` reproduces them as
-**125 checks**, each tagged with the auditor and finding it descends from, so a
+**131 checks**, each tagged with the auditor and finding it descends from, so a
 failure names which defect returned rather than merely that something broke.
 
 ### Failure modes verified

@@ -112,6 +112,12 @@ def main() -> int:
     _, bout = run("parse_diff.py", [INPUTS / "02-permissions.diff", "--brief"])
     pdb = tmpd / "02-permissions-brief.json"
     pdb.write_text(bout, encoding="utf-8")
+    # A pull-request description with no diff. The brief names this as an
+    # accepted input; the envelope reports `description_only` so the
+    # validator can allow architectural findings and reject line-level ones.
+    _, dout = run("parse_diff.py", [INPUTS / "07-pr-description.txt"])
+    pdesc = tmpd / "07-pr-description.json"
+    pdesc.write_text(dout, encoding="utf-8")
     empty_ctx = tmpd / "no-context"
     empty_ctx.mkdir()
 
@@ -148,6 +154,15 @@ def main() -> int:
          "validate_findings.py",
          [INPUTS / "adversarial-missed-defect.md", "--diff", pd,
           "--today", TODAY], {1}, None),
+        # The brief asks the Sentinel to analyse "a Git diff file (.diff) OR
+        # pull request description". A description is reviewable - just not
+        # for line-level defects or test coverage.
+        ("parse_diff.py <- 07-pr-description.txt (no diff, still usable)",
+         "parse_diff.py", [INPUTS / "07-pr-description.txt"], {0}, None),
+        ("validate_findings.py <- valid-description-review.md (+description)",
+         "validate_findings.py",
+         [INPUTS / "valid-description-review.md", "--diff", pdesc,
+          "--today", TODAY], {0}, None),
         ("validate_findings.py <- valid-refusal.md", "validate_findings.py",
          [INPUTS / "valid-refusal.md", "--today", TODAY], {0}, None),
         ("validate_findings.py <- adversarial-uncited-review.md",
